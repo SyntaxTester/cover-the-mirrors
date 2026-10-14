@@ -1,0 +1,13 @@
+{
+	"signs": ["no_breath", "clean_boots", "dog_growl"],
+	"nights": [
+		[
+			{"name": "Сосед", "model": "base_a", "double": false, "signs": [], "line": ""},
+			{"name": "Вдова", "model": "base_b", "double": false, "signs": [], "line": ""},
+			{"name": "Сосед", "model": "base_a", "double": true, "signs": ["no_breath"], "line": ""},
+			{"name": "Кузнец", "model": "base_c", "double": false, "signs": [], "line": ""}
+		],
+		[],
+		[]
+	]
+}

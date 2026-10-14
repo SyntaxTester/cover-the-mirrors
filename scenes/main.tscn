@@ -1,0 +1,35 @@
+[gd_scene format=3]
+
+[ext_resource type="Script" path="res://scripts/main.gd" id="1_85g3d"]
+[ext_resource type="PackedScene" path="res://scenes/level.tscn" id="2_choun"]
+[ext_resource type="PackedScene" path="res://scenes/player.tscn" id="3_ya4ey"]
+[ext_resource type="Script" path="res://scripts/player.gd" id="4_eb6dy"]
+[ext_resource type="Script" path="res://scripts/systems/candles.gd" id="5_trceg"]
+[ext_resource type="Script" path="res://scripts/systems/soul.gd" id="6_a8y0u"]
+[ext_resource type="Script" path="res://scripts/systems/bell.gd" id="7_jkv2x"]
+[ext_resource type="PackedScene" path="res://scenes/hud.tscn" id="8_jbj1t"]
+[ext_resource type="Script" path="res://scripts/hud.gd" id="9_muem4"]
+
+[node name="Main" type="Node3D" unique_id=2126050460]
+script = ExtResource("1_85g3d")
+
+[node name="Level" type="Node3D" parent="." unique_id=1255534508 instance=ExtResource("2_choun")]
+
+[node name="Player" type="CharacterBody3D" parent="." unique_id=1624044351 instance=ExtResource("3_ya4ey")]
+collision_layer = 4
+script = ExtResource("4_eb6dy")
+
+[node name="Systems" type="Node" parent="." unique_id=1248770682]
+
+[node name="Candles" type="Node" parent="Systems" unique_id=2098853629]
+script = ExtResource("5_trceg")
+
+[node name="Soul" type="Node" parent="Systems" unique_id=1543477509]
+script = ExtResource("6_a8y0u")
+
+[node name="Bell" type="AudioStreamPlayer" parent="Systems" unique_id=1174569604]
+bus = &"SFX"
+script = ExtResource("7_jkv2x")
+
+[node name="Hud" type="CanvasLayer" parent="." unique_id=537982221 instance=ExtResource("8_jbj1t")]
+script = ExtResource("9_muem4")

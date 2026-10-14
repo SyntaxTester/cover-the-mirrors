@@ -1,0 +1,45 @@
+[gd_scene format=3]
+
+[ext_resource type="Script" path="res://scripts/mirror.gd" id="1_pbtkb"]
+[ext_resource type="Material" path="res://assets/materials/dark_wood.tres" id="2_jkloh"]
+[ext_resource type="Material" path="res://assets/materials/glass.tres" id="3_gc331"]
+[ext_resource type="Material" path="res://assets/materials/cloth.tres" id="4_v1dgs"]
+
+[sub_resource type="BoxMesh" id="BoxMesh_x2inw"]
+size = Vector3(0.7, 1, 0.04)
+
+[sub_resource type="QuadMesh" id="QuadMesh_vv2wh"]
+size = Vector2(0.58, 0.88)
+
+[sub_resource type="BoxMesh" id="BoxMesh_kaj02"]
+size = Vector3(0.8, 1.1, 0.015)
+
+[sub_resource type="BoxShape3D" id="BoxShape3D_yghp0"]
+size = Vector3(0.8, 1.1, 0.12)
+
+[node name="Mirror" type="Node3D" unique_id=195678998]
+script = ExtResource("1_pbtkb")
+
+[node name="Frame" type="MeshInstance3D" parent="." unique_id=842708836]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 0.02)
+material_override = ExtResource("2_jkloh")
+mesh = SubResource("BoxMesh_x2inw")
+
+[node name="Glass" type="MeshInstance3D" parent="." unique_id=596965353]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 0.041)
+material_override = ExtResource("3_gc331")
+mesh = SubResource("QuadMesh_vv2wh")
+
+[node name="Cloth" type="MeshInstance3D" parent="." unique_id=154268411]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, -0.02, 0.055)
+material_override = ExtResource("4_v1dgs")
+mesh = SubResource("BoxMesh_kaj02")
+
+[node name="Hit" type="Area3D" parent="." unique_id=1995890893]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 0.06)
+collision_layer = 2
+collision_mask = 0
+monitoring = false
+
+[node name="Shape" type="CollisionShape3D" parent="Hit" unique_id=1675359546]
+shape = SubResource("BoxShape3D_yghp0")
