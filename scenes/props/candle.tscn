@@ -6,15 +6,15 @@
 [ext_resource type="Material" path="res://assets/materials/flame.tres" id="4_xkx70"]
 
 [sub_resource type="CylinderMesh" id="CylinderMesh_q865l"]
-top_radius = 0.06
-bottom_radius = 0.06
+top_radius = 0.05
+bottom_radius = 0.05
 height = 0.015
 radial_segments = 8
 rings = 1
 
 [sub_resource type="CylinderMesh" id="CylinderMesh_c3hq0"]
-top_radius = 0.022
-bottom_radius = 0.022
+top_radius = 0.02
+bottom_radius = 0.02
 height = 0.16
 radial_segments = 6
 rings = 1
@@ -26,43 +26,45 @@ radial_segments = 6
 rings = 3
 
 [sub_resource type="SphereShape3D" id="SphereShape3D_s2xve"]
-radius = 0.14
+radius = 0.13
 
-[node name="Candle" type="Node3D" unique_id=1478502942]
+[node name="Candle" type="Node3D" unique_id=1005260674]
 script = ExtResource("1_oclty")
 
-[node name="Dish" type="MeshInstance3D" parent="." unique_id=977162107]
+[node name="Dish" type="MeshInstance3D" parent="." unique_id=460767109]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.0075, 0)
 material_override = ExtResource("2_demc0")
+cast_shadow = 0
 mesh = SubResource("CylinderMesh_q865l")
 
-[node name="Wax" type="MeshInstance3D" parent="." unique_id=1257883605]
+[node name="Wax" type="MeshInstance3D" parent="." unique_id=1872598656]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.095, 0)
 material_override = ExtResource("3_jthy0")
+cast_shadow = 0
 mesh = SubResource("CylinderMesh_c3hq0")
 
-[node name="Flame" type="Node3D" parent="." unique_id=1276562135]
+[node name="Flame" type="Node3D" parent="." unique_id=1976246710]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.185, 0)
 
-[node name="Mesh" type="MeshInstance3D" parent="Flame" unique_id=1334815774]
+[node name="Mesh" type="MeshInstance3D" parent="Flame" unique_id=60509061]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.012, 0)
 material_override = ExtResource("4_xkx70")
 cast_shadow = 0
 mesh = SubResource("SphereMesh_a0bva")
 
-[node name="Light" type="OmniLight3D" parent="." unique_id=175447450]
+[node name="Light" type="OmniLight3D" parent="." unique_id=1074276419]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.24, 0)
-light_color = Color(1, 0.6, 0.3, 1)
-light_energy = 1.3
+light_color = Color(1, 0.62, 0.32, 1)
+light_energy = 0.9
 shadow_enabled = true
-omni_range = 4.5
-omni_attenuation = 1.4
+omni_range = 3.5
+omni_attenuation = 1.3
 
-[node name="Hit" type="Area3D" parent="." unique_id=1075148954]
+[node name="Hit" type="Area3D" parent="." unique_id=2000427364]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.15, 0)
 collision_layer = 2
 collision_mask = 0
 monitoring = false
 
-[node name="Shape" type="CollisionShape3D" parent="Hit" unique_id=1214441878]
+[node name="Shape" type="CollisionShape3D" parent="Hit" unique_id=1206025306]
 shape = SubResource("SphereShape3D_s2xve")

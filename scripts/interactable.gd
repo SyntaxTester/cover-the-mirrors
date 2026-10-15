@@ -1,7 +1,7 @@
 class_name Interactable
 extends Node3D
 
-@export var prompt := "Взаимодействовать"
+@export var prompt := "Interact"
 @export var hold := false
 
 
@@ -19,6 +19,10 @@ func interact(_p: Node) -> void:
 
 func release(_p: Node) -> void:
 	pass
+
+
+func wants_zoom() -> bool:
+	return false
 
 
 static func find(n: Node) -> Interactable:

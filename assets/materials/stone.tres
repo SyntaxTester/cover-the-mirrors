@@ -1,0 +1,11 @@
+[gd_resource type="StandardMaterial3D" format=3]
+
+[ext_resource type="Texture2D" path="res://assets/textures/flagstone.png" id="1_vwsbh"]
+
+[resource]
+albedo_color = Color(0.62, 0.6, 0.56, 1)
+albedo_texture = ExtResource("1_vwsbh")
+uv1_scale = Vector3(1.4, 1.4, 1.4)
+uv1_triplanar = true
+uv1_world_triplanar = true
+texture_filter = 0

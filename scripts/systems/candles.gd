@@ -29,4 +29,4 @@ func lit_count() -> int:
 
 func debug_line() -> String:
 	var n := get_tree().get_nodes_in_group("coffin_candles").size()
-	return "свечи %d/%d  темно %.1f" % [lit_count(), n, dark]
+	return "candles %d/%d  dark %.1f" % [lit_count(), n, dark]

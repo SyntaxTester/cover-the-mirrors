@@ -4,6 +4,7 @@ signal changed(lit: bool)
 
 @export var lit := true
 @export var burns := true
+@export var shadow := true
 
 @onready var light: OmniLight3D = $Light
 @onready var flame: Node3D = $Flame
@@ -14,7 +15,8 @@ var ph := 0.0
 
 
 func _ready() -> void:
-	prompt = "Зажечь"
+	prompt = "Light"
+	light.shadow_enabled = shadow
 	if burns:
 		add_to_group("coffin_candles")
 	base = light.light_energy

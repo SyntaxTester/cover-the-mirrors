@@ -6,6 +6,20 @@ var mouse_sens := 0.0022
 var bob_freq := 7.0
 var bob_amount := 0.025
 var interact_dist := 2.0
+var zoom_fov := 32.0
+
+var guest_speed := 1.1
+var stalk_speed := 0.55
+var knock_start := 12.0
+var knock_end_margin := 50.0
+var knock_jitter := 8.0
+var knock_repeat := 10.0
+var door_wait := 40.0
+var expel_hold := 1.2
+var expel_penalty := 15.0
+var vigil_start := 80.0
+var end_delay := 2.5
+var subtitle_time := 4.5
 
 var start_hour := 22.0
 var night_hours := 8.0

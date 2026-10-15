@@ -15,4 +15,4 @@ func ring() -> void:
 
 
 func debug_line() -> String:
-	return "колокол %d" % rings
+	return "bell %d" % rings

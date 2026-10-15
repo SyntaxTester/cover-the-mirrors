@@ -11,6 +11,8 @@ var state := State.PLAY
 var night := 0
 var t := 0.0
 var bell_t := 0.0
+var doubles_let := 0
+var doubles_total := 0
 
 
 func cfg() -> Dictionary:
@@ -21,6 +23,7 @@ func start_night(n: int) -> void:
 	night = clampi(n, 0, Config.nights.size() - 1)
 	t = 0.0
 	bell_t = 0.0
+	doubles_let = 0
 	state = State.PLAY
 	night_started.emit(night)
 

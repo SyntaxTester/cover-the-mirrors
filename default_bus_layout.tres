@@ -1,4 +1,4 @@
-[gd_resource type="AudioBusLayout" format=3 uid="uid://c8l284lrylnl6"]
+[gd_resource type="AudioBusLayout" format=3]
 
 [sub_resource type="AudioEffectReverb" id="AudioEffectReverb_7kkex"]
 room_size = 0.35
@@ -35,7 +35,67 @@ room_size = 0.35
 damping = 0.6
 wet = 0.18
 
+[sub_resource type="AudioEffectReverb" id="AudioEffectReverb_ro4dx"]
+room_size = 0.35
+damping = 0.6
+wet = 0.18
+
+[sub_resource type="AudioEffectReverb" id="AudioEffectReverb_51bpa"]
+room_size = 0.35
+damping = 0.6
+wet = 0.18
+
+[sub_resource type="AudioEffectReverb" id="AudioEffectReverb_2mq3o"]
+room_size = 0.35
+damping = 0.6
+wet = 0.18
+
+[sub_resource type="AudioEffectReverb" id="AudioEffectReverb_5tfch"]
+room_size = 0.35
+damping = 0.6
+wet = 0.18
+
+[sub_resource type="AudioEffectReverb" id="AudioEffectReverb_sjxdv"]
+room_size = 0.35
+damping = 0.6
+wet = 0.18
+
+[sub_resource type="AudioEffectReverb" id="AudioEffectReverb_hnxjo"]
+room_size = 0.35
+damping = 0.6
+wet = 0.18
+
+[sub_resource type="AudioEffectReverb" id="AudioEffectReverb_3r1kf"]
+room_size = 0.35
+damping = 0.6
+wet = 0.18
+
 [sub_resource type="AudioEffectReverb" id="AudioEffectReverb_g28q7"]
+room_size = 0.35
+damping = 0.6
+wet = 0.18
+
+[sub_resource type="AudioEffectReverb" id="AudioEffectReverb_nf0co"]
+room_size = 0.35
+damping = 0.6
+wet = 0.18
+
+[sub_resource type="AudioEffectReverb" id="AudioEffectReverb_w8t7n"]
+room_size = 0.35
+damping = 0.6
+wet = 0.18
+
+[sub_resource type="AudioEffectReverb" id="AudioEffectReverb_7h8fu"]
+room_size = 0.35
+damping = 0.6
+wet = 0.18
+
+[sub_resource type="AudioEffectReverb" id="AudioEffectReverb_2lqp5"]
+room_size = 0.35
+damping = 0.6
+wet = 0.18
+
+[sub_resource type="AudioEffectReverb" id="AudioEffectReverb_pu3yg"]
 room_size = 0.35
 damping = 0.6
 wet = 0.18
@@ -193,3 +253,135 @@ bus/18/volume_db = 0.0
 bus/18/send = &"Master"
 bus/18/effect/0/effect = SubResource("AudioEffectReverb_e2wrs")
 bus/18/effect/0/enabled = true
+bus/19/name = &"Ambience 7"
+bus/19/solo = false
+bus/19/mute = false
+bus/19/bypass_fx = false
+bus/19/volume_db = 0.0
+bus/19/send = &"Master"
+bus/20/name = &"SFX 7"
+bus/20/solo = false
+bus/20/mute = false
+bus/20/bypass_fx = false
+bus/20/volume_db = 0.0
+bus/20/send = &"Master"
+bus/20/effect/0/effect = SubResource("AudioEffectReverb_ro4dx")
+bus/20/effect/0/enabled = true
+bus/21/name = &"Voice 7"
+bus/21/solo = false
+bus/21/mute = false
+bus/21/bypass_fx = false
+bus/21/volume_db = 0.0
+bus/21/send = &"Master"
+bus/21/effect/0/effect = SubResource("AudioEffectReverb_51bpa")
+bus/21/effect/0/enabled = true
+bus/22/name = &"Ambience 8"
+bus/22/solo = false
+bus/22/mute = false
+bus/22/bypass_fx = false
+bus/22/volume_db = 0.0
+bus/22/send = &"Master"
+bus/23/name = &"SFX 8"
+bus/23/solo = false
+bus/23/mute = false
+bus/23/bypass_fx = false
+bus/23/volume_db = 0.0
+bus/23/send = &"Master"
+bus/23/effect/0/effect = SubResource("AudioEffectReverb_2mq3o")
+bus/23/effect/0/enabled = true
+bus/24/name = &"Voice 8"
+bus/24/solo = false
+bus/24/mute = false
+bus/24/bypass_fx = false
+bus/24/volume_db = 0.0
+bus/24/send = &"Master"
+bus/24/effect/0/effect = SubResource("AudioEffectReverb_5tfch")
+bus/24/effect/0/enabled = true
+bus/25/name = &"Ambience 9"
+bus/25/solo = false
+bus/25/mute = false
+bus/25/bypass_fx = false
+bus/25/volume_db = 0.0
+bus/25/send = &"Master"
+bus/26/name = &"SFX 9"
+bus/26/solo = false
+bus/26/mute = false
+bus/26/bypass_fx = false
+bus/26/volume_db = 0.0
+bus/26/send = &"Master"
+bus/26/effect/0/effect = SubResource("AudioEffectReverb_sjxdv")
+bus/26/effect/0/enabled = true
+bus/27/name = &"Voice 9"
+bus/27/solo = false
+bus/27/mute = false
+bus/27/bypass_fx = false
+bus/27/volume_db = 0.0
+bus/27/send = &"Master"
+bus/27/effect/0/effect = SubResource("AudioEffectReverb_hnxjo")
+bus/27/effect/0/enabled = true
+bus/28/name = &"Ambience 10"
+bus/28/solo = false
+bus/28/mute = false
+bus/28/bypass_fx = false
+bus/28/volume_db = 0.0
+bus/28/send = &"Master"
+bus/29/name = &"SFX 10"
+bus/29/solo = false
+bus/29/mute = false
+bus/29/bypass_fx = false
+bus/29/volume_db = 0.0
+bus/29/send = &"Master"
+bus/29/effect/0/effect = SubResource("AudioEffectReverb_3r1kf")
+bus/29/effect/0/enabled = true
+bus/30/name = &"Voice 10"
+bus/30/solo = false
+bus/30/mute = false
+bus/30/bypass_fx = false
+bus/30/volume_db = 0.0
+bus/30/send = &"Master"
+bus/30/effect/0/effect = SubResource("AudioEffectReverb_nf0co")
+bus/30/effect/0/enabled = true
+bus/31/name = &"Ambience 11"
+bus/31/solo = false
+bus/31/mute = false
+bus/31/bypass_fx = false
+bus/31/volume_db = 0.0
+bus/31/send = &"Master"
+bus/32/name = &"SFX 11"
+bus/32/solo = false
+bus/32/mute = false
+bus/32/bypass_fx = false
+bus/32/volume_db = 0.0
+bus/32/send = &"Master"
+bus/32/effect/0/effect = SubResource("AudioEffectReverb_w8t7n")
+bus/32/effect/0/enabled = true
+bus/33/name = &"Voice 11"
+bus/33/solo = false
+bus/33/mute = false
+bus/33/bypass_fx = false
+bus/33/volume_db = 0.0
+bus/33/send = &"Master"
+bus/33/effect/0/effect = SubResource("AudioEffectReverb_7h8fu")
+bus/33/effect/0/enabled = true
+bus/34/name = &"Ambience 12"
+bus/34/solo = false
+bus/34/mute = false
+bus/34/bypass_fx = false
+bus/34/volume_db = 0.0
+bus/34/send = &"Master"
+bus/35/name = &"SFX 12"
+bus/35/solo = false
+bus/35/mute = false
+bus/35/bypass_fx = false
+bus/35/volume_db = 0.0
+bus/35/send = &"Master"
+bus/35/effect/0/effect = SubResource("AudioEffectReverb_2lqp5")
+bus/35/effect/0/enabled = true
+bus/36/name = &"Voice 12"
+bus/36/solo = false
+bus/36/mute = false
+bus/36/bypass_fx = false
+bus/36/volume_db = 0.0
+bus/36/send = &"Master"
+bus/36/effect/0/effect = SubResource("AudioEffectReverb_pu3yg")
+bus/36/effect/0/enabled = true

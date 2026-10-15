@@ -45,6 +45,8 @@ func _physics_process(dt: float) -> void:
 	bob += dt * sp * Config.bob_freq
 	cam.position.y = cam_y + sin(bob) * Config.bob_amount * minf(sp / Config.walk_speed, 1.0)
 	scan(live)
+	var z := target != null and target.wants_zoom()
+	cam.fov = lerpf(cam.fov, Config.zoom_fov if z else 70.0, dt * 6.0)
 
 
 func scan(live: bool) -> void:

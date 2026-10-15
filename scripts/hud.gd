@@ -1,10 +1,10 @@
 extends CanvasLayer
 
 const LOSE := {
-	"candles": "Свечи погасли.",
-	"soul": "Ты смотрел в зеркало слишком долго.",
-	"vigil": "Бдение прервалось.",
-	"double": "Чужой подошёл к гробу.",
+	"candles": "The candles went out.",
+	"soul": "You looked into the mirror for too long.",
+	"vigil": "The wake fell silent.",
+	"double": "Something reached the coffin.",
 }
 
 @onready var hint: Label = $Hint
@@ -14,8 +14,10 @@ const LOSE := {
 @onready var end: Control = $End
 @onready var title: Label = $End/Title
 @onready var sub: Label = $End/Sub
+@onready var subtitle: Label = $Subtitle
 
 var intro_t := 0.0
+var sub_t := 0.0
 
 
 func _ready() -> void:
@@ -23,6 +25,7 @@ func _ready() -> void:
 	end.visible = false
 	dbg.visible = false
 	intro.modulate.a = 0.0
+	subtitle.text = ""
 	Game.night_started.connect(started)
 	Game.night_lost.connect(lost)
 	Game.night_won.connect(won)
@@ -32,20 +35,29 @@ func set_hint(s: String) -> void:
 	hint.text = s
 
 
+func say(who: String, text: String) -> void:
+	subtitle.text = "%s: %s" % [who, text]
+	sub_t = Config.subtitle_time
+
+
 func started(n: int) -> void:
-	intro.text = "Ночь %d\n%s" % [n + 1, Game.clock()]
+	intro.text = "Night %d\n%s" % [n + 1, Game.clock()]
 	intro_t = 4.0
 
 
 func lost(reason: String) -> void:
-	show_end("Покойник сел.", "%s\n\nR - заново" % LOSE.get(reason, reason))
+	dot.visible = false
+	hint.text = ""
+	await get_tree().create_timer(Config.end_delay).timeout
+	show_end("The dead man sat up.", "%s\n\nR - try again" % LOSE.get(reason, reason))
 
 
 func won(n: int) -> void:
+	var s := "Doubles let in: %d of %d" % [Game.doubles_let, Game.doubles_total]
 	if Game.is_last():
-		show_end("Утро. Похороны.", "R - сначала")
+		show_end("Morning. The funeral.", "%s\n\nR - start over" % s)
 	else:
-		show_end("Утро.", "Ночь %d пережита\n\nE - следующая ночь   R - заново" % (n + 1))
+		show_end("Morning.", "Night %d survived\n%s\n\nE - next night   R - restart" % [n + 1, s])
 
 
 func show_end(a: String, b: String) -> void:
@@ -57,11 +69,15 @@ func show_end(a: String, b: String) -> void:
 
 
 func _process(dt: float) -> void:
+	if sub_t > 0.0:
+		sub_t -= dt
+		if sub_t <= 0.0:
+			subtitle.text = ""
 	if intro_t > 0.0:
 		intro_t -= dt
 		intro.modulate.a = clampf(intro_t, 0.0, 1.0)
 	if dbg.visible:
-		var s := "ночь %d  %s  %.0f/%.0f с  fps %d" % [Game.night + 1, Game.clock(), Game.t, Game.cfg().duration, Engine.get_frames_per_second()]
+		var s := "night %d  %s  %.0f/%.0f s  fps %d" % [Game.night + 1, Game.clock(), Game.t, Game.cfg().duration, Engine.get_frames_per_second()]
 		for n in get_tree().get_nodes_in_group("debug"):
 			s += "\n" + n.debug_line()
 		dbg.text = s

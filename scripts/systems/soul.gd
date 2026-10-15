@@ -24,4 +24,4 @@ func _process(dt: float) -> void:
 
 
 func debug_line() -> String:
-	return "душа %.0f" % soul
+	return "soul %.0f" % soul

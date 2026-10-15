@@ -15,12 +15,26 @@ func _ready() -> void:
 
 
 func get_prompt() -> String:
-	return "Закрыть окошко" if open else "Открыть окошко"
+	var v = get_tree().get_first_node_in_group("visitors")
+	if open:
+		return "Turn away (close)" if v and v.at_door else "Close hatch"
+	return "Open hatch"
 
 
 func interact(_p: Node) -> void:
-	open = not open
-	toggled.emit(open)
+	set_open(not open)
+
+
+func set_open(o: bool) -> void:
+	if o == open:
+		return
+	open = o
+	toggled.emit(o)
+	get_tree().call_group("visitors", "hatch_changed", o)
+
+
+func wants_zoom() -> bool:
+	return open
 
 
 func _process(dt: float) -> void:

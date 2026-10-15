@@ -1,35 +1,54 @@
 [gd_scene format=3]
 
-[ext_resource type="Script" path="res://scripts/main.gd" id="1_85g3d"]
-[ext_resource type="PackedScene" path="res://scenes/level.tscn" id="2_choun"]
-[ext_resource type="PackedScene" path="res://scenes/player.tscn" id="3_ya4ey"]
-[ext_resource type="Script" path="res://scripts/player.gd" id="4_eb6dy"]
-[ext_resource type="Script" path="res://scripts/systems/candles.gd" id="5_trceg"]
-[ext_resource type="Script" path="res://scripts/systems/soul.gd" id="6_a8y0u"]
-[ext_resource type="Script" path="res://scripts/systems/bell.gd" id="7_jkv2x"]
-[ext_resource type="PackedScene" path="res://scenes/hud.tscn" id="8_jbj1t"]
-[ext_resource type="Script" path="res://scripts/hud.gd" id="9_muem4"]
+[ext_resource type="Script" path="res://scripts/main.gd" id="1_eb6dy"]
+[ext_resource type="PackedScene" path="res://scenes/level.tscn" id="2_trceg"]
+[ext_resource type="PackedScene" path="res://scenes/player.tscn" id="3_a8y0u"]
+[ext_resource type="Script" path="res://scripts/player.gd" id="4_jkv2x"]
+[ext_resource type="Script" path="res://scripts/systems/candles.gd" id="5_jbj1t"]
+[ext_resource type="Script" path="res://scripts/systems/soul.gd" id="6_muem4"]
+[ext_resource type="Script" path="res://scripts/systems/bell.gd" id="7_dp3eg"]
+[ext_resource type="Script" path="res://scripts/systems/vigil.gd" id="8_0ld40"]
+[ext_resource type="Script" path="res://scripts/systems/visitors.gd" id="9_gqmmt"]
+[ext_resource type="Script" path="res://scripts/systems/omens.gd" id="10_yc10j"]
+[ext_resource type="PackedScene" path="res://scenes/hud.tscn" id="11_jscy8"]
+[ext_resource type="Script" path="res://scripts/hud.gd" id="12_pm3ni"]
 
-[node name="Main" type="Node3D" unique_id=2126050460]
-script = ExtResource("1_85g3d")
+[node name="Main" type="Node3D" unique_id=1266151276]
+script = ExtResource("1_eb6dy")
 
-[node name="Level" type="Node3D" parent="." unique_id=1255534508 instance=ExtResource("2_choun")]
+[node name="Level" type="Node3D" parent="." unique_id=1416830647 instance=ExtResource("2_trceg")]
 
-[node name="Player" type="CharacterBody3D" parent="." unique_id=1624044351 instance=ExtResource("3_ya4ey")]
+[node name="Player" type="CharacterBody3D" parent="." unique_id=608820391 instance=ExtResource("3_a8y0u")]
 collision_layer = 4
-script = ExtResource("4_eb6dy")
+script = ExtResource("4_jkv2x")
 
-[node name="Systems" type="Node" parent="." unique_id=1248770682]
+[node name="Systems" type="Node" parent="." unique_id=1287330038]
 
-[node name="Candles" type="Node" parent="Systems" unique_id=2098853629]
-script = ExtResource("5_trceg")
+[node name="Candles" type="Node" parent="Systems" unique_id=844282138]
+script = ExtResource("5_jbj1t")
 
-[node name="Soul" type="Node" parent="Systems" unique_id=1543477509]
-script = ExtResource("6_a8y0u")
+[node name="Soul" type="Node" parent="Systems" unique_id=872030195]
+script = ExtResource("6_muem4")
 
-[node name="Bell" type="AudioStreamPlayer" parent="Systems" unique_id=1174569604]
+[node name="Bell" type="AudioStreamPlayer" parent="Systems" unique_id=1489572342]
 bus = &"SFX"
-script = ExtResource("7_jkv2x")
+script = ExtResource("7_dp3eg")
 
-[node name="Hud" type="CanvasLayer" parent="." unique_id=537982221 instance=ExtResource("8_jbj1t")]
-script = ExtResource("9_muem4")
+[node name="Vigil" type="Node" parent="Systems" unique_id=508380558]
+script = ExtResource("8_0ld40")
+
+[node name="Murmur" type="AudioStreamPlayer" parent="Systems/Vigil" unique_id=417615888]
+autoplay = true
+bus = &"Voice"
+
+[node name="Visitors" type="Node" parent="Systems" unique_id=852678495]
+script = ExtResource("9_gqmmt")
+
+[node name="Omens" type="Node" parent="Systems" unique_id=1676359150]
+script = ExtResource("10_yc10j")
+
+[node name="Heartbeat" type="AudioStreamPlayer" parent="Systems/Omens" unique_id=2132117598]
+bus = &"SFX"
+
+[node name="Hud" type="CanvasLayer" parent="." unique_id=212950789 instance=ExtResource("11_jscy8")]
+script = ExtResource("12_pm3ni")

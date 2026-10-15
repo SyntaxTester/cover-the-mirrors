@@ -1,45 +1,120 @@
 [gd_scene format=3]
 
-[ext_resource type="Script" path="res://scripts/mirror.gd" id="1_pbtkb"]
-[ext_resource type="Material" path="res://assets/materials/dark_wood.tres" id="2_jkloh"]
-[ext_resource type="Material" path="res://assets/materials/glass.tres" id="3_gc331"]
-[ext_resource type="Material" path="res://assets/materials/cloth.tres" id="4_v1dgs"]
-
-[sub_resource type="BoxMesh" id="BoxMesh_x2inw"]
-size = Vector3(0.7, 1, 0.04)
-
-[sub_resource type="QuadMesh" id="QuadMesh_vv2wh"]
-size = Vector2(0.58, 0.88)
+[ext_resource type="Script" path="res://scripts/mirror.gd" id="1_jkloh"]
+[ext_resource type="Material" path="res://assets/materials/dark_wood.tres" id="2_gc331"]
+[ext_resource type="Material" path="res://assets/materials/glass.tres" id="3_v1dgs"]
+[ext_resource type="Material" path="res://assets/materials/iron.tres" id="4_x2inw"]
+[ext_resource type="Material" path="res://assets/materials/curtain.tres" id="5_vv2wh"]
 
 [sub_resource type="BoxMesh" id="BoxMesh_kaj02"]
-size = Vector3(0.8, 1.1, 0.015)
+size = Vector3(1.6, 2.1, 0.06)
 
-[sub_resource type="BoxShape3D" id="BoxShape3D_yghp0"]
-size = Vector3(0.8, 1.1, 0.12)
+[sub_resource type="QuadMesh" id="QuadMesh_yghp0"]
+size = Vector2(1.4, 1.9)
 
-[node name="Mirror" type="Node3D" unique_id=195678998]
-script = ExtResource("1_pbtkb")
+[sub_resource type="BoxMesh" id="BoxMesh_l44sd"]
+size = Vector3(1.8, 0.03, 0.03)
 
-[node name="Frame" type="MeshInstance3D" parent="." unique_id=842708836]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 0.02)
-material_override = ExtResource("2_jkloh")
-mesh = SubResource("BoxMesh_x2inw")
+[sub_resource type="BoxMesh" id="BoxMesh_hvlui"]
+size = Vector3(0.02, 0.05, 0.1)
 
-[node name="Glass" type="MeshInstance3D" parent="." unique_id=596965353]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 0.041)
-material_override = ExtResource("3_gc331")
-mesh = SubResource("QuadMesh_vv2wh")
+[sub_resource type="BoxMesh" id="BoxMesh_xgk31"]
+size = Vector3(0.02, 0.05, 0.1)
 
-[node name="Cloth" type="MeshInstance3D" parent="." unique_id=154268411]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, -0.02, 0.055)
-material_override = ExtResource("4_v1dgs")
+[sub_resource type="BoxMesh" id="BoxMesh_sur8n"]
+size = Vector3(1.75, 2.2, 0.03)
+
+[sub_resource type="BoxMesh" id="BoxMesh_1qsge"]
+size = Vector3(0.06, 2.2, 0.04)
+
+[sub_resource type="BoxMesh" id="BoxMesh_oj7p5"]
+size = Vector3(0.06, 2.2, 0.04)
+
+[sub_resource type="BoxMesh" id="BoxMesh_enjqt"]
+size = Vector3(0.06, 2.2, 0.04)
+
+[sub_resource type="BoxMesh" id="BoxMesh_512yn"]
+size = Vector3(0.06, 2.2, 0.04)
+
+[sub_resource type="BoxMesh" id="BoxMesh_0d2vm"]
+size = Vector3(0.06, 2.2, 0.04)
+
+[sub_resource type="BoxMesh" id="BoxMesh_5v7wm"]
+size = Vector3(0.06, 2.2, 0.04)
+
+[sub_resource type="BoxShape3D" id="BoxShape3D_ricqn"]
+size = Vector3(1.7, 2.1, 0.2)
+
+[node name="Mirror" type="Node3D" unique_id=1541716350]
+script = ExtResource("1_jkloh")
+
+[node name="Frame" type="MeshInstance3D" parent="." unique_id=377174587]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 0.03)
+material_override = ExtResource("2_gc331")
 mesh = SubResource("BoxMesh_kaj02")
 
-[node name="Hit" type="Area3D" parent="." unique_id=1995890893]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 0.06)
+[node name="Glass" type="MeshInstance3D" parent="." unique_id=2108144265]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 0.061)
+material_override = ExtResource("3_v1dgs")
+mesh = SubResource("QuadMesh_yghp0")
+
+[node name="Rod" type="MeshInstance3D" parent="." unique_id=148237164]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1.12, 0.12)
+material_override = ExtResource("4_x2inw")
+mesh = SubResource("BoxMesh_l44sd")
+
+[node name="RodL" type="MeshInstance3D" parent="." unique_id=1178793770]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -0.88, 1.12, 0.07)
+material_override = ExtResource("4_x2inw")
+mesh = SubResource("BoxMesh_hvlui")
+
+[node name="RodR" type="MeshInstance3D" parent="." unique_id=1603137004]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.88, 1.12, 0.07)
+material_override = ExtResource("4_x2inw")
+mesh = SubResource("BoxMesh_xgk31")
+
+[node name="Cloth" type="Node3D" parent="." unique_id=310068567]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 0.12)
+
+[node name="Mesh" type="MeshInstance3D" parent="Cloth" unique_id=2031786762]
+material_override = ExtResource("5_vv2wh")
+mesh = SubResource("BoxMesh_sur8n")
+
+[node name="Fold0" type="MeshInstance3D" parent="Cloth" unique_id=328734489]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -0.73, 0, 0.012)
+material_override = ExtResource("5_vv2wh")
+mesh = SubResource("BoxMesh_1qsge")
+
+[node name="Fold1" type="MeshInstance3D" parent="Cloth" unique_id=1289766385]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -0.44, 0, 0.012)
+material_override = ExtResource("5_vv2wh")
+mesh = SubResource("BoxMesh_oj7p5")
+
+[node name="Fold2" type="MeshInstance3D" parent="Cloth" unique_id=754372922]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -0.15, 0, 0.012)
+material_override = ExtResource("5_vv2wh")
+mesh = SubResource("BoxMesh_enjqt")
+
+[node name="Fold3" type="MeshInstance3D" parent="Cloth" unique_id=483023741]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.14, 0, 0.012)
+material_override = ExtResource("5_vv2wh")
+mesh = SubResource("BoxMesh_512yn")
+
+[node name="Fold4" type="MeshInstance3D" parent="Cloth" unique_id=222864567]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.43, 0, 0.012)
+material_override = ExtResource("5_vv2wh")
+mesh = SubResource("BoxMesh_0d2vm")
+
+[node name="Fold5" type="MeshInstance3D" parent="Cloth" unique_id=198745194]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.72, 0, 0.012)
+material_override = ExtResource("5_vv2wh")
+mesh = SubResource("BoxMesh_5v7wm")
+
+[node name="Hit" type="Area3D" parent="." unique_id=1672749615]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 0.1)
 collision_layer = 2
 collision_mask = 0
 monitoring = false
 
-[node name="Shape" type="CollisionShape3D" parent="Hit" unique_id=1675359546]
-shape = SubResource("BoxShape3D_yghp0")
+[node name="Shape" type="CollisionShape3D" parent="Hit" unique_id=2096769325]
+shape = SubResource("BoxShape3D_ricqn")

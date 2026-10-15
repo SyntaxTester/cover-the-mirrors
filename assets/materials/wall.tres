@@ -1,6 +1,11 @@
 [gd_resource type="StandardMaterial3D" format=3]
 
+[ext_resource type="Texture2D" path="res://assets/textures/whitewash.png" id="1_blum3"]
+
 [resource]
-albedo_color = Color(0.46, 0.43, 0.37, 1)
-roughness = 0.9
+albedo_color = Color(0.92, 0.9, 0.86, 1)
+albedo_texture = ExtResource("1_blum3")
+uv1_scale = Vector3(0.8, 0.8, 0.8)
+uv1_triplanar = true
+uv1_world_triplanar = true
 texture_filter = 0
