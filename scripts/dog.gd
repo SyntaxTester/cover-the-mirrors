@@ -32,5 +32,3 @@ func _process(dt: float) -> void:
 	var sh := sin(t * 40.0) * 0.006 * k
 	body.position.y = body_y + k * 0.2 + sh
 	head.position = head_p + Vector3(0.05 * k, 0.3 * k + sh, 0)
-	legs.scale.y = maxf(k, 0.01)
-	legs.visible = k > 0.02

@@ -9,6 +9,7 @@ var held: Interactable
 var hud: Node
 var bob := 0.0
 var cam_y := 0.0
+@export var run_speed := 4.0
 
 
 func _ready() -> void:
@@ -33,17 +34,25 @@ func _physics_process(dt: float) -> void:
 	var inp := Vector2.ZERO
 	if live:
 		inp = Input.get_vector("move_left", "move_right", "move_forward", "move_back")
+
+	var running := live and Input.is_key_pressed(KEY_SHIFT) and inp.length() > 0.0
+	var speed := run_speed if running else Config.walk_speed
+
 	var dir := (transform.basis * Vector3(inp.x, 0, inp.y)).normalized()
-	velocity.x = move_toward(velocity.x, dir.x * Config.walk_speed, Config.walk_accel * dt)
-	velocity.z = move_toward(velocity.z, dir.z * Config.walk_speed, Config.walk_accel * dt)
+	velocity.x = move_toward(velocity.x, dir.x * speed, Config.walk_accel * dt)
+	velocity.z = move_toward(velocity.z, dir.z * speed, Config.walk_accel * dt)
+
 	if is_on_floor():
 		velocity.y = 0.0
 	else:
 		velocity.y -= 9.8 * dt
+
 	move_and_slide()
+
 	var sp := Vector2(velocity.x, velocity.z).length()
 	bob += dt * sp * Config.bob_freq
-	cam.position.y = cam_y + sin(bob) * Config.bob_amount * minf(sp / Config.walk_speed, 1.0)
+	cam.position.y = cam_y + sin(bob) * Config.bob_amount * minf(sp / speed, 1.0)
+
 	scan(live)
 	var z := target != null and target.wants_zoom()
 	cam.fov = lerpf(cam.fov, Config.zoom_fov if z else 70.0, dt * 6.0)

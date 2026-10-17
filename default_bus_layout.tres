@@ -1,4 +1,4 @@
-[gd_resource type="AudioBusLayout" format=3]
+[gd_resource type="AudioBusLayout" load_steps=25 format=3 uid="uid://cksgyb8umr7wi"]
 
 [sub_resource type="AudioEffectReverb" id="AudioEffectReverb_7kkex"]
 room_size = 0.35
