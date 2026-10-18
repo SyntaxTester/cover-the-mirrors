@@ -1,4 +1,4 @@
-[gd_scene load_steps=11 format=3 uid="uid://do6sgv68t6rrk"]
+[gd_scene load_steps=13 format=3 uid="uid://do6sgv68t6rrk"]
 
 [ext_resource type="Script" uid="uid://by4fbowoqbw73" path="res://scripts/main.gd" id="1_eb6dy"]
 [ext_resource type="PackedScene" uid="uid://dlbdh5g7pmd2l" path="res://scenes/level.tscn" id="2_trceg"]
@@ -7,7 +7,9 @@
 [ext_resource type="Script" uid="uid://cw50l37usjwpc" path="res://scripts/systems/soul.gd" id="6_muem4"]
 [ext_resource type="Script" uid="uid://cu7l6vaj6hi6a" path="res://scripts/systems/bell.gd" id="7_dp3eg"]
 [ext_resource type="Script" uid="uid://dvyla15kad41q" path="res://scripts/systems/vigil.gd" id="8_0ld40"]
+[ext_resource type="AudioStream" uid="uid://uerohv7s03f3" path="res://assets/sounds/HOUSE AMBIENT.mp3" id="8_eb6dy"]
 [ext_resource type="Script" uid="uid://boadawn1u8xmv" path="res://scripts/systems/visitors.gd" id="9_gqmmt"]
+[ext_resource type="AudioStream" uid="uid://j67uq0p2n41k" path="res://assets/sounds/A_bit_rapid_heartbeat.mp3" id="10_ya4ey"]
 [ext_resource type="Script" uid="uid://5a0efm3tda80" path="res://scripts/systems/omens.gd" id="10_yc10j"]
 [ext_resource type="PackedScene" path="res://scenes/hud.tscn" id="11_jscy8"]
 
@@ -34,8 +36,12 @@ script = ExtResource("7_dp3eg")
 script = ExtResource("8_0ld40")
 
 [node name="Murmur" type="AudioStreamPlayer" parent="Systems/Vigil"]
+stream = ExtResource("8_eb6dy")
+volume_db = -20.97
+pitch_scale = 0.85
 autoplay = true
 bus = &"Voice"
+parameters/looping = true
 
 [node name="Visitors" type="Node" parent="Systems"]
 script = ExtResource("9_gqmmt")
@@ -44,6 +50,9 @@ script = ExtResource("9_gqmmt")
 script = ExtResource("10_yc10j")
 
 [node name="Heartbeat" type="AudioStreamPlayer" parent="Systems/Omens"]
+stream = ExtResource("10_ya4ey")
+volume_db = -3.0
+pitch_scale = 1.15
 bus = &"SFX"
 
 [node name="Hud" parent="." instance=ExtResource("11_jscy8")]

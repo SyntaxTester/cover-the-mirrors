@@ -1,0 +1,24 @@
+[remap]
+
+importer="wav"
+type="AudioStreamWAV"
+uid="uid://bain8p3srnqgh"
+path="res://.godot/imported/Dog growling and barking.wav-b6ebe08330ec9cabbf24c94983b36c69.sample"
+
+[deps]
+
+source_file="res://assets/sounds/Dog growling and barking.wav"
+dest_files=["res://.godot/imported/Dog growling and barking.wav-b6ebe08330ec9cabbf24c94983b36c69.sample"]
+
+[params]
+
+force/8_bit=false
+force/mono=false
+force/max_rate=false
+force/max_rate_hz=44100
+edit/trim=false
+edit/normalize=false
+edit/loop_mode=0
+edit/loop_begin=0
+edit/loop_end=-1
+compress/mode=2

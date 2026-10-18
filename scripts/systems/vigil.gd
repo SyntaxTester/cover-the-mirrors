@@ -18,7 +18,7 @@ func _process(dt: float) -> void:
 	var awake: int = v.awake_count() if v else 0
 	vigil += (awake * Game.cfg().vigil_per_guest - Game.cfg().vigil_drain) * dt
 	vigil = clampf(vigil, 0.0, 100.0)
-	murmur.volume_db = linear_to_db(maxf(vigil / 100.0, 0.001))
+	#wmurmur.volume_db = linear_to_db(maxf(vigil / 100.0, 0.001))
 	if vigil <= 0.0:
 		Game.lose("vigil")
 

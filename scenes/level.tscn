@@ -1,4 +1,4 @@
-[gd_scene load_steps=121 format=3 uid="uid://dlbdh5g7pmd2l"]
+[gd_scene load_steps=129 format=3 uid="uid://dlbdh5g7pmd2l"]
 
 [ext_resource type="Material" path="res://assets/materials/wall.tres" id="1_2jdvr"]
 [ext_resource type="Material" path="res://assets/materials/floor.tres" id="2_q4oe8"]
@@ -21,22 +21,30 @@
 [ext_resource type="Material" path="res://assets/materials/ember.tres" id="20_v4d4p"]
 [ext_resource type="Material" path="res://assets/materials/turf.tres" id="21_30hdq"]
 [ext_resource type="Material" path="res://assets/materials/flame.tres" id="22_3fqns"]
+[ext_resource type="AudioStream" uid="uid://rtlf2oejrh1q" path="res://assets/sounds/chimney_sound.mp3" id="22_535f6"]
 [ext_resource type="Material" path="res://assets/materials/iron.tres" id="23_sc620"]
 [ext_resource type="Material" path="res://assets/materials/straw.tres" id="24_421lv"]
 [ext_resource type="Material" path="res://assets/materials/lamp.tres" id="25_oksur"]
 [ext_resource type="Material" path="res://assets/materials/metal.tres" id="26_jide8"]
 [ext_resource type="PackedScene" path="res://scenes/props/mirror.tscn" id="27_4h8xp"]
 [ext_resource type="Script" uid="uid://dg2f4gqs5mwq5" path="res://scripts/dog.gd" id="29_5ga6x"]
+[ext_resource type="AudioStream" uid="uid://bain8p3srnqgh" path="res://assets/sounds/Dog growling and barking.wav" id="30_50fbu"]
 [ext_resource type="Material" uid="uid://dsjgdnq6aej4h" path="res://assets/materials/dog.tres" id="30_nj2gj"]
+[ext_resource type="AudioStream" uid="uid://b2q51kvmfxlhg" path="res://assets/sounds/Normal_knock_on_wooden_door.wav" id="31_c1pbi"]
 [ext_resource type="Script" uid="uid://cp3mj5ikt02jw" path="res://scripts/door.gd" id="31_msn66"]
 [ext_resource type="Texture2D" uid="uid://1f4ib7m3d0ar" path="res://assets/textures/grass_seamless_texture_1392.jpg" id="31_q4oe8"]
 [ext_resource type="Texture2D" uid="uid://d0vpkb51du38h" path="res://assets/textures/grass_seamless_texture_1318.jpg" id="32_q4oe8"]
 [ext_resource type="Script" uid="uid://v6rxfjffm1ga" path="res://scripts/hatch.gd" id="32_xmwm8"]
+[ext_resource type="AudioStream" uid="uid://csvw7egx0uu4e" path="res://assets/sounds/rain.mp3" id="34_svjb4"]
 [ext_resource type="PackedScene" uid="uid://5s3u4dv0i8dx" path="res://scenes/models/church/source/Old_Church.fbx" id="35_asl66"]
 [ext_resource type="Material" path="res://assets/materials/rain.tres" id="35_d5irf"]
 [ext_resource type="PackedScene" uid="uid://csj4hnksve1ho" path="res://scenes/models/shrek-house/source/shrkhs/house.fbx" id="36_2jdvr"]
 [ext_resource type="Material" path="res://assets/materials/face.tres" id="36_ltwek"]
 [ext_resource type="PackedScene" uid="uid://0ulxglo312ho" path="res://scenes/models/psx houses/source/houses.fbx" id="37_q4oe8"]
+[ext_resource type="PackedScene" uid="uid://v2smovgl7ivh" path="res://scenes/models/tree_pack_1.1/models/tree_02.tscn" id="42_0fmhk"]
+[ext_resource type="PackedScene" uid="uid://60v14oveddsb" path="res://scenes/models/tree_pack_1.1/models/tree_03.tscn" id="43_uhfbm"]
+[ext_resource type="PackedScene" uid="uid://cgvt2j47nnvk1" path="res://scenes/models/tree_pack_1.1/models/tree_04.tscn" id="44_lqb7q"]
+[ext_resource type="PackedScene" uid="uid://gcuhbjoykjw0" path="res://scenes/models/tree_pack_1.1/models/tree_05.tscn" id="45_ok3ci"]
 
 [sub_resource type="Environment" id="Environment_vry8j"]
 background_mode = 1
@@ -989,24 +997,6 @@ transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 13.469999, 0.2, 9.71)
 size = Vector3(0.06000042, 0.4, 0.29999924)
 material = ExtResource("7_0fmhk")
 
-[node name="BenchE" type="CSGBox3D" parent="Hall/Furniture"]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 13.71, 0.43, 5.55)
-visible = false
-size = Vector3(0.42000008, 0.060000002, 1.7000003)
-material = ExtResource("7_0fmhk")
-
-[node name="BenchELeg0" type="CSGBox3D" parent="Hall/Furniture"]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 13.71, 0.2, 4.83)
-visible = false
-size = Vector3(0.29999924, 0.4, 0.059999943)
-material = ExtResource("7_0fmhk")
-
-[node name="BenchELeg1" type="CSGBox3D" parent="Hall/Furniture"]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 13.71, 0.2, 6.27)
-visible = false
-size = Vector3(0.29999924, 0.4, 0.06000042)
-material = ExtResource("7_0fmhk")
-
 [node name="ClockBody" type="CSGBox3D" parent="Hall/Furniture"]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 12.8, 0.975, 0.22500001)
 size = Vector3(0.5, 1.95, 0.35)
@@ -1277,9 +1267,12 @@ omni_attenuation = 1.1
 
 [node name="Crackle" type="AudioStreamPlayer3D" parent="Hall/Fire"]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.2, 0.3, 0)
+stream = ExtResource("22_535f6")
+volume_db = -1.075
 unit_size = 3.0
 autoplay = true
 bus = &"Ambience"
+parameters/looping = true
 
 [node name="Crane" type="CSGCombiner3D" parent="Hall"]
 collision_mask = 0
@@ -1485,8 +1478,9 @@ mesh = SubResource("BoxMesh_5ndhr")
 
 [node name="Growl" type="AudioStreamPlayer3D" parent="Hall/Dog"]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.3, 0.3, 0)
+stream = ExtResource("30_50fbu")
+volume_db = -7.89
 unit_size = 3.0
-bus = &"SFX"
 
 [node name="GuestList" type="Label3D" parent="Hall"]
 transform = Transform3D(-4.371139e-08, 0, -1, 0, 1, 0, 1, 0, -4.371139e-08, 13.962, 1.45, 1.25)
@@ -1559,6 +1553,8 @@ shape = SubResource("BoxShape3D_pn2dd")
 
 [node name="Knock" type="AudioStreamPlayer3D" parent="FrontDoor"]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.5, 1.2, -0.15)
+stream = ExtResource("31_c1pbi")
+volume_db = -14.023
 unit_size = 3.0
 bus = &"SFX"
 
@@ -1832,9 +1828,12 @@ draw_pass_1 = SubResource("BoxMesh_g3e2o")
 
 [node name="RainSound" type="AudioStreamPlayer3D" parent="Outside"]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 16, 1.5, 4)
+stream = ExtResource("34_svjb4")
+volume_db = -19.485
 unit_size = 3.0
 autoplay = true
 bus = &"Ambience"
+parameters/looping = true
 
 [node name="Face" type="Node3D" parent="Outside"]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 14.5, 1.4, 3.75)
@@ -1984,5 +1983,71 @@ transform = Transform3D(92.22483, 38.659832, 4.608611e-06, 0, -1.1920929e-05, 10
 
 [node name="FogVolume" type="FogVolume" parent="."]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 42.44756, 0, 5.9616175)
+
+[node name="tree02" parent="." instance=ExtResource("42_0fmhk")]
+transform = Transform3D(0.435, 0, 0, 0, 0.435, 0, 0, 0, 0.435, 24.625454, -0.030000199, 9.050036)
+
+[node name="tree08" parent="." instance=ExtResource("42_0fmhk")]
+transform = Transform3D(0.435, 0, 0, 0, 0.435, 0, 0, 0, 0.435, 33.587975, -0.030000199, 5.551961)
+
+[node name="tree22" parent="." instance=ExtResource("42_0fmhk")]
+transform = Transform3D(0.435, 0, 0, 0, 0.435, 0, 0, 0, 0.435, 42.902615, -0.030000199, 14.879567)
+
+[node name="tree23" parent="." instance=ExtResource("42_0fmhk")]
+transform = Transform3D(0.435, 0, 0, 0, 0.435, 0, 0, 0, 0.435, 41.819347, -0.030000199, 23.446556)
+
+[node name="tree09" parent="." instance=ExtResource("42_0fmhk")]
+transform = Transform3D(0.435, 0, 0, 0, 0.435, 0, 0, 0, 0.435, 33.587975, -0.030000199, -8.615497)
+
+[node name="tree10" parent="." instance=ExtResource("42_0fmhk")]
+transform = Transform3D(0.435, 0, 0, 0, 0.435, 0, 0, 0, 0.435, 22.494785, -0.030000199, -8.615497)
+
+[node name="tree03" parent="." instance=ExtResource("43_uhfbm")]
+transform = Transform3D(0.53, 0, 0, 0, 0.53, 0, 0, 0, 0.53, 36.173588, -0.029999245, 10.323936)
+
+[node name="tree15" parent="." instance=ExtResource("43_uhfbm")]
+transform = Transform3D(0.53, 0, 0, 0, 0.53, 0, 0, 0, 0.53, 36.173588, -0.029999245, -13.830698)
+
+[node name="tree16" parent="." instance=ExtResource("43_uhfbm")]
+transform = Transform3D(0.53, 0, 0, 0, 0.53, 0, 0, 0, 0.53, 31.161652, -0.029999245, -16.318478)
+
+[node name="tree17" parent="." instance=ExtResource("43_uhfbm")]
+transform = Transform3D(0.53, 0, 0, 0, 0.53, 0, 0, 0, 0.53, 23.765947, -0.029999245, -19.941692)
+
+[node name="tree18" parent="." instance=ExtResource("43_uhfbm")]
+transform = Transform3D(0.53, 0, 0, 0, 0.53, 0, 0, 0, 0.53, 26.675013, -0.029999245, 26.54907)
+
+[node name="tree19" parent="." instance=ExtResource("43_uhfbm")]
+transform = Transform3D(0.53, 0, 0, 0, 0.53, 0, 0, 0, 0.53, 32.857193, -0.029999245, 24.909039)
+
+[node name="tree20" parent="." instance=ExtResource("43_uhfbm")]
+transform = Transform3D(0.53, 0, 0, 0, 0.53, 0, 0, 0, 0.53, 18.865042, -0.029999245, 24.19339)
+
+[node name="tree13" parent="." instance=ExtResource("43_uhfbm")]
+transform = Transform3D(0.53, 0, 0, 0, 0.53, 0, 0, 0, 0.53, 32.352413, -0.029999245, 12.00466)
+
+[node name="tree04" parent="." instance=ExtResource("44_lqb7q")]
+transform = Transform3D(0.345, 0, 0, 0, 0.345, 0, 0, 0, 0.345, 27.989576, -0.030000199, 6.2617188)
+
+[node name="tree06" parent="." instance=ExtResource("44_lqb7q")]
+transform = Transform3D(0.345, 0, 0, 0, 0.345, 0, 0, 0, 0.345, 22.836096, -0.030000199, 12.269147)
+
+[node name="tree07" parent="." instance=ExtResource("44_lqb7q")]
+transform = Transform3D(0.345, 0, 0, 0, 0.345, 0, 0, 0, 0.345, 28.506987, -0.030000199, 19.04327)
+
+[node name="tree05" parent="." instance=ExtResource("45_ok3ci")]
+transform = Transform3D(0.425, 0, 0, 0, 0.425, 0, 0, 0, 0.425, 27.582058, -0.029999722, -5.895759)
+
+[node name="tree21" parent="." instance=ExtResource("45_ok3ci")]
+transform = Transform3D(0.425, 0, 0, 0, 0.425, 0, 0, 0, 0.425, 40.2627, -0.029999722, 2.8772783)
+
+[node name="tree14" parent="." instance=ExtResource("45_ok3ci")]
+transform = Transform3D(0.425, 0, 0, 0, 0.425, 0, 0, 0, 0.425, 29.960701, -0.029999722, -9.202031)
+
+[node name="tree11" parent="." instance=ExtResource("45_ok3ci")]
+transform = Transform3D(0.425, 0, 0, 0, 0.425, 0, 0, 0, 0.425, 18.062082, -0.029999722, -13.46184)
+
+[node name="tree12" parent="." instance=ExtResource("45_ok3ci")]
+transform = Transform3D(0.425, 0, 0, 0, 0.425, 0, 0, 0, 0.425, 31.175123, -0.029999722, -12.192098)
 
 [editable path="houses"]

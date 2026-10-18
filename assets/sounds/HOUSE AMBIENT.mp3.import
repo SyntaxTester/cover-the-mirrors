@@ -1,0 +1,19 @@
+[remap]
+
+importer="mp3"
+type="AudioStreamMP3"
+uid="uid://uerohv7s03f3"
+path="res://.godot/imported/HOUSE AMBIENT.mp3-750b008824c06906c949d701ee1d3735.mp3str"
+
+[deps]
+
+source_file="res://assets/sounds/HOUSE AMBIENT.mp3"
+dest_files=["res://.godot/imported/HOUSE AMBIENT.mp3-750b008824c06906c949d701ee1d3735.mp3str"]
+
+[params]
+
+loop=false
+loop_offset=0
+bpm=0
+beat_count=0
+bar_beats=4
