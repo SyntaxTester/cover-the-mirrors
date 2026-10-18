@@ -110,9 +110,13 @@ func won(n: int) -> void:
 	if Game.is_last():
 		var e := ending()
 		lines.insert(0, e[1])
+		lines.insert(1, EPILOGUE)
 		show_end(e[0], "%s\n\nR - start over" % "\n".join(lines))
 	else:
 		show_end("Morning.", "Night %d survived\n%s\n\nE - next night   R - restart" % [n + 1, "\n".join(lines)])
+
+
+const EPILOGUE := "The sexton had dug two graves by the chapel wall. The second stone read: Ronan Donnelly."
 
 
 ## The last morning: what the parish remembers about this wake.

@@ -10,6 +10,9 @@ const PRAYERS := [
 	"(murmurs the rosary under his breath)",
 	"Keep the glass covered, Ronan. Whatever you hear.",
 	"Go to the door when they knock. I'll stay with your father.",
+	"Eternal rest grant unto them— unto him, O Lord.",
+	"You've not eaten a bite since the bog road, Ronan. Nor slept. Nor...",
+	"When did you last look in a glass, son? No. Don't.",
 ]
 
 var legs := Node3D.new()
