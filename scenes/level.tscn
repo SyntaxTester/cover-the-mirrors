@@ -45,6 +45,8 @@
 [ext_resource type="PackedScene" uid="uid://60v14oveddsb" path="res://scenes/models/tree_pack_1.1/models/tree_03.tscn" id="43_uhfbm"]
 [ext_resource type="PackedScene" uid="uid://cgvt2j47nnvk1" path="res://scenes/models/tree_pack_1.1/models/tree_04.tscn" id="44_lqb7q"]
 [ext_resource type="PackedScene" uid="uid://gcuhbjoykjw0" path="res://scenes/models/tree_pack_1.1/models/tree_05.tscn" id="45_ok3ci"]
+[ext_resource type="Script" path="res://scripts/terrain.gd" id="90_terrain"]
+[ext_resource type="Script" path="res://scripts/flat_roofs.gd" id="91_roofs"]
 
 [sub_resource type="Environment" id="Environment_vry8j"]
 background_mode = 1
@@ -2055,5 +2057,11 @@ transform = Transform3D(0.425, 0, 0, 0, 0.425, 0, 0, 0, 0.425, 18.062082, -0.029
 
 [node name="tree12" parent="." instance=ExtResource("45_ok3ci")]
 transform = Transform3D(0.425, 0, 0, 0, 0.425, 0, 0, 0, 0.425, 31.175123, -0.029999722, -12.192098)
+
+[node name="FlatRoofs" type="Node" parent="."]
+script = ExtResource("91_roofs")
+
+[node name="Terrain" type="Node3D" parent="."]
+script = ExtResource("90_terrain")
 
 [editable path="houses"]
