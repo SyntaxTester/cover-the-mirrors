@@ -1,4 +1,4 @@
-[gd_scene load_steps=129 format=3 uid="uid://dlbdh5g7pmd2l"]
+[gd_scene load_steps=134 format=3 uid="uid://dlbdh5g7pmd2l"]
 
 [ext_resource type="Material" path="res://assets/materials/wall.tres" id="1_2jdvr"]
 [ext_resource type="Material" path="res://assets/materials/floor.tres" id="2_q4oe8"]
@@ -12,9 +12,9 @@
 [ext_resource type="Material" path="res://assets/materials/skin.tres" id="10_uhfbm"]
 [ext_resource type="PackedScene" path="res://scenes/props/candle.tscn" id="11_lqb7q"]
 [ext_resource type="Material" uid="uid://bg8h0mngeaij7" path="res://assets/materials/stone.tres" id="13_hv3ux"]
-[ext_resource type="Material" path="res://assets/materials/clock_face.tres" id="14_j4eoh"]
 [ext_resource type="Material" path="res://assets/materials/plate.tres" id="15_bhb1k"]
 [ext_resource type="Material" uid="uid://bw0t2j8nvbevg" path="res://assets/materials/picture.tres" id="16_tcyu4"]
+[ext_resource type="PackedScene" uid="uid://c2jm2jj46ek74" path="res://scenes/clock_arrow_1.tscn" id="16_uhfbm"]
 [ext_resource type="Material" path="res://assets/materials/linen.tres" id="17_vmndo"]
 [ext_resource type="Material" path="res://assets/materials/plate_blue.tres" id="18_bo6tc"]
 [ext_resource type="Script" uid="uid://dhc3m488obwel" path="res://scripts/fire.gd" id="19_7iqcu"]
@@ -39,8 +39,11 @@
 [ext_resource type="PackedScene" uid="uid://5s3u4dv0i8dx" path="res://scenes/models/church/source/Old_Church.fbx" id="35_asl66"]
 [ext_resource type="Material" path="res://assets/materials/rain.tres" id="35_d5irf"]
 [ext_resource type="PackedScene" uid="uid://csj4hnksve1ho" path="res://scenes/models/shrek-house/source/shrkhs/house.fbx" id="36_2jdvr"]
+[ext_resource type="Script" uid="uid://gmvhg0b06mv4" path="res://addons/zylann.hterrain/hterrain.gd" id="36_hv3ux"]
 [ext_resource type="Material" path="res://assets/materials/face.tres" id="36_ltwek"]
+[ext_resource type="Resource" uid="uid://2cnjbv6tdonb" path="res://terrain/data.hterrain" id="37_j4eoh"]
 [ext_resource type="PackedScene" uid="uid://0ulxglo312ho" path="res://scenes/models/psx houses/source/houses.fbx" id="37_q4oe8"]
+[ext_resource type="Script" uid="uid://npt5vghw8wq2" path="res://addons/zylann.hterrain/hterrain_texture_set.gd" id="38_bhb1k"]
 [ext_resource type="PackedScene" uid="uid://v2smovgl7ivh" path="res://scenes/models/tree_pack_1.1/models/tree_02.tscn" id="42_0fmhk"]
 [ext_resource type="PackedScene" uid="uid://60v14oveddsb" path="res://scenes/models/tree_pack_1.1/models/tree_03.tscn" id="43_uhfbm"]
 [ext_resource type="PackedScene" uid="uid://cgvt2j47nnvk1" path="res://scenes/models/tree_pack_1.1/models/tree_04.tscn" id="44_lqb7q"]
@@ -116,6 +119,8 @@ radius = 0.11
 height = 0.2
 radial_segments = 8
 rings = 4
+
+[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_lqb7q"]
 
 [sub_resource type="StandardMaterial3D" id="StandardMaterial3D_asl66"]
 albedo_color = Color(0, 0, 0, 1)
@@ -370,6 +375,11 @@ albedo_color = Color(0.446777, 0.44677705, 0.44677693, 1)
 albedo_texture = ExtResource("32_q4oe8")
 metallic_specular = 0.0
 uv1_scale = Vector3(-0.148, -0.73, -0.148)
+
+[sub_resource type="Resource" id="Resource_tcyu4"]
+script = ExtResource("38_bhb1k")
+mode = 0
+textures = [[ExtResource("31_q4oe8")], [null]]
 
 [sub_resource type="BoxMesh" id="BoxMesh_jvf0p"]
 size = Vector3(0.16, 0.2, 0.16)
@@ -1009,7 +1019,7 @@ transform = Transform3D(1, 0, 0, 0, -4.371139e-08, -1, 0, 1, -4.371139e-08, 12.8
 radius = 0.17
 height = 0.02
 sides = 12
-material = ExtResource("14_j4eoh")
+material = SubResource("StandardMaterial3D_lqb7q")
 
 [node name="DresserBase" type="CSGBox3D" parent="Hall/Furniture"]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 7.2, 0.425, 9.725)
@@ -1099,11 +1109,11 @@ transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 13.985001, 0.9786865, 1.25)
 size = Vector3(0.029999733, 1.2426269, 0.5)
 material = ExtResource("17_vmndo")
 
-[node name="ClockArrow1" type="MeshInstance3D" parent="Hall/Furniture"]
-transform = Transform3D(-0.5161967, -0.56453484, -0.0073902383, 0.3530504, -0.8254092, 0.00505452, -0.005618452, 0, 0.99659425, 12.768958, 1.6145656, 0.421)
-material_override = SubResource("StandardMaterial3D_asl66")
-mesh = SubResource("BoxMesh_xrpag")
-skeleton = NodePath("../..")
+[node name="ClockArrow1" parent="Hall/Furniture" instance=ExtResource("16_uhfbm")]
+transform = Transform3D(-0.275931, -0.56453484, -0.0073902383, 0.18872175, -0.8254092, 0.00505452, -0.0030033225, 0, 0.99659425, 12.785364, 1.6033446, 0.42117858)
+
+[node name="ClockArrow3" parent="Hall/Furniture" instance=ExtResource("16_uhfbm")]
+transform = Transform3D(-0.18441534, 0.76204705, -0.005797535, -0.21703243, -0.6475215, -0.0068229306, -0.002558666, 2.6288202e-10, 0.99659425, 12.740773, 1.6004335, 0.421047)
 
 [node name="ClockArrow2" type="MeshInstance3D" parent="Hall/Furniture"]
 transform = Transform3D(-0.0068016583, -0.9999895, -6.7418245e-05, 0.90628284, -0.007504927, 0.0089831045, -0.0081422925, 0, 0.99992615, 12.810159, 1.6555552, 0.42063847)
@@ -1737,6 +1747,29 @@ transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 14.549999, -0.015, 2.6)
 size = Vector3(0.6999998, 0.03, 1.3)
 material = ExtResource("4_c1pbi")
 
+[node name="Node3D" type="Node3D" parent="Outside/Ground"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, -0.10545015, 0)
+
+[node name="HTerrain" type="Node3D" parent="Outside/Ground/Node3D"]
+script = ExtResource("36_hv3ux")
+centered = true
+_terrain_data = ExtResource("37_j4eoh")
+chunk_size = 32
+collision_enabled = true
+collision_layer = 1
+collision_mask = 1
+shader_type = "Classic4Lite"
+custom_shader = null
+custom_globalmap_shader = null
+texture_set = SubResource("Resource_tcyu4")
+render_layers = 1
+cast_shadow = 1
+shader_params/u_ground_uv_scale = 20
+shader_params/u_depth_blending = true
+shader_params/u_triplanar = null
+shader_params/u_tile_reduction = null
+metadata/_custom_type_script = "uid://gmvhg0b06mv4"
+
 [node name="Lamppost" type="CSGCombiner3D" parent="Outside"]
 use_collision = true
 collision_mask = 0
@@ -1897,13 +1930,16 @@ transform = Transform3D(-1, 0, -8.742278e-08, 0, 1, 0, 8.742278e-08, 0, -1, 9.9,
 transform = Transform3D(-1, 0, -8.742278e-08, 0, 1, 0, 8.742278e-08, 0, -1, 11, 0.46, 0.3)
 
 [node name="Seat5" type="Marker3D" parent="Markers/Seats" groups=["seats"]]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 10.2, 0.46, 9.7)
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 10.903592, 0.46, 9.7)
 
 [node name="Seat6" type="Marker3D" parent="Markers/Seats" groups=["seats"]]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 11.4, 0.46, 9.7)
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 12.030676, 0.46, 9.7)
 
 [node name="Seat7" type="Marker3D" parent="Markers/Seats" groups=["seats"]]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 12.6, 0.46, 9.7)
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 13.013674, 0.46, 9.7)
+
+[node name="Seat8" type="Marker3D" parent="Markers/Seats" groups=["seats"]]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 9.984285, 0.46, 9.7)
 
 [node name="Seat8" type="Marker3D" parent="Markers/Seats" groups=["seats"]]
 transform = Transform3D(0.7466599, 0, 0.665206, 0, 1, 0, -0.665206, 0, 0.7466599, 9, 0.45, 4.75)
