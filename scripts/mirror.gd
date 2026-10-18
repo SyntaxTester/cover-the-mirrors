@@ -8,6 +8,7 @@ extends Interactable
 @onready var glass: MeshInstance3D = $Glass
 
 var lifted := false
+var slipped := false   # the cloth has slid half off: the glass is looking into the room
 var k := 0.0
 var cloth_x := 0.0
 var vp: SubViewport
@@ -39,7 +40,24 @@ func _ready() -> void:
 	glass.material_override = m
 
 
+## Something pulled the cloth half off. It stays that way until straightened.
+func slip() -> void:
+	if slipped or lifted:
+		return
+	slipped = true
+	Sounds.play_at(self, cloth.global_position, Sounds.CLOTH, -2.0, "SFX", 0.8, 0.05, 5.0)
+	get_tree().call_group("roles", "on_mirror_slipped", self)
+
+
+func get_prompt() -> String:
+	return "Straighten the cloth" if slipped else prompt
+
+
 func interact(_p: Node) -> void:
+	if slipped:
+		slipped = false
+		Sounds.play_at(self, cloth.global_position, Sounds.CLOTH, -8.0, "SFX", 1.2, 0.08, 2.0)
+		return
 	if not lifted:
 		Sounds.play_at(self, cloth.global_position, Sounds.CLOTH, -6.0, "SFX", 1.0, 0.08, 2.0)
 	lifted = true
@@ -52,7 +70,8 @@ func release(_p: Node) -> void:
 
 
 func _process(dt: float) -> void:
-	k = move_toward(k, 1.0 if lifted else 0.0, dt * 4.0)
+	var tgt := 1.0 if lifted else (0.4 if slipped else 0.0)
+	k = move_toward(k, tgt, dt * (4.0 if lifted or not slipped else 1.2))
 	cloth.position.x = cloth_x - k * 0.74
 	cloth.scale.x = 1.0 - k * 0.82
 	cloth.scale.z = 1.0 + k * 1.5

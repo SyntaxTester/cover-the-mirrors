@@ -38,6 +38,7 @@ enum Character {
 	WILLIAM, DANIEL, JOSEPH, JOHN, HUGH,
 	JEREMIAH, DENIS, TIMOTHY, PETER, MARTIN,
 	MARY, BRIDGET, MARGARET, CATHERINE, ELLEN,
+	DECLAN,
 }
 
 @export var character: Character = Character.SULTAN_ESMAGZAM:
@@ -325,6 +326,17 @@ static var _grain_tex: ImageTexture
 #  IN-GAME API
 # ═════════════════════════════════════════════════════════════════════════════
 ## "SEAN", "Old Tom"... -> Character id, or -1 if unknown.
+## The look of a villager as data (hair, glasses, hat, facial hair...), so the
+## game can pick a detail to change on a double. Same keys build_guest_parts
+## accepts as overrides.
+static func profile_of(id: int) -> Dictionary:
+	var b := PS1Villager.new()
+	var p := b._profile(id)
+	p["eye_col"] = EYE_COLS.get(Character.keys()[id], EYE_BROWN)
+	b.free()
+	return p
+
+
 static func character_from_name(model: String) -> int:
 	return Character.keys().find(model.strip_edges().to_upper().replace(" ", "_"))
 
@@ -564,7 +576,8 @@ func _profile(id: int) -> Dictionary:
 		"freckles": false, "red_nose": false, "rosy": false, "dark_circles": false,
 		"sunken_cheeks": false, "sunken_eyes": false, "wrinkles": false,
 		"big_hands": false, "oversized": false, "elegant": false, "rumpled": false,
-		"cross": false, "dirty": false, "patched": false,
+		"cross": false, "dirty": false, "patched": false, "collar": false,
+		"mole": 0.0,   # a dark mole on a cheek: +1 = character's left, -1 = right
 	}
 	var female_base := {"female": true, "pants_col": Color(0.15, 0.13, 0.12),
 		"shoe_col": Color(0.12, 0.09, 0.07), "top": "dress", "head_w": 0.104}
@@ -613,6 +626,12 @@ func _profile(id: int) -> Dictionary:
 				"hair": HAIR_DARK, "dark_circles": true, "top": "coat", "top_col": CLOTH_BLACK,
 				"shirt_col": Color(0.82, 0.80, 0.76), "cross": true, "expr": "fearful",
 				"pose": "clasp"}
+		Character.DECLAN:            # the priest who keeps the vigil with Ronan
+			o = {"height": 1.03, "girth": 0.96, "skin": SKIN_OLD, "head_w": 0.108, "jaw": 0.84,
+				"hair": HAIR_GREY, "hair_style": "slick", "wrinkles": true, "top": "coat",
+				"top_col": CLOTH_BLACK, "shirt_col": Color(0.12, 0.12, 0.13), "collar": true,
+				"pants_col": CLOTH_BLACK, "shoe_col": Color(0.05, 0.05, 0.05), "cross": true,
+				"glasses": true, "expr": "kind", "pose": "clasp"}
 		Character.JOHN:              # quiet carpenter
 			o = {"girth": 1.12, "skin": SKIN_WEATHER, "hair": HAIR_GREY, "facial": "beard",
 				"facial_col": HAIR_GREY, "top": "shirt", "shirt_col": Color(0.62, 0.55, 0.42),
@@ -743,6 +762,7 @@ func _build_character(id: int) -> void:
 	_paint_face(p)
 	if photo != null:
 		_paste_face(photo)
+	_paint_marks(p)
 	_paint_clothes(p)
 	_rng.seed = hash(key + "/mesh")
 	_xf = Transform3D(Basis.from_scale(Vector3(1.0, float(p.height), 1.0)), Vector3.ZERO)
@@ -1388,6 +1408,18 @@ func _paste_face(img: Image) -> void:
 				_px(x + 1, y, _tex(Color(c.r, c.g, c.b), 1.6), c.a)
 
 
+## Marks painted over any face, painted or photo: a mole on one cheek.
+func _paint_marks(p: Dictionary) -> void:
+	var side: float = p.get("mole", 0.0)
+	if is_zero_approx(side):
+		return
+	_clip = Rect2i(1, 0, 62, 64)
+	var mx := 32.0 + signf(side) * 13.0
+	var my := _fy(0.090)
+	var c := _tex(Color(0.22, 0.13, 0.09), 1.6, 0.0)
+	_pell(mx, my, 1.4, 1.4, c)
+
+
 func _paint_mouth(kind: String, cx: float, my: float, mw: float, skin: Color, female: bool) -> void:
 	var lip := skin.darkened(0.15).lerp(_tex(Color(0.66, 0.28, 0.26), 1.6), 0.5 if female else 0.28)
 	var ld := lip.darkened(0.4)
@@ -1485,6 +1517,8 @@ func _paint_clothes(p: Dictionary) -> void:
 				_prect(_tx(-0.2), _ty(1.005), _tx(0.2), _ty(0.98), ap)
 				for s: float in SIDES:
 					_pline(_tx(s * 0.065), _ty(1.30), _tx(s * 0.1), _ty(1.45), ap, 1.0, 2)
+	if p.collar:   # a priest's white collar
+		_prect(_tx(-0.03), _ty(1.478), _tx(0.03), _ty(1.452), _tex(Color(0.95, 0.94, 0.9), 1.3, 0.0))
 	if p.cross:
 		var chain := _tex(Color(0.3, 0.3, 0.32), 1.3, 0.0)
 		var silver := _tex(C_SILVER, 1.3, 0.0)

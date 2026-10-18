@@ -10,12 +10,14 @@ func _ready() -> void:
 func _process(dt: float) -> void:
 	if Game.state != Game.State.PLAY:
 		return
-	var open := false
+	var open := 0.0   # 1 = a mirror drawn back, 0.25 = a cloth that slipped
 	for m in get_tree().get_nodes_in_group("mirrors"):
 		if m.lifted:
-			open = true
-	if open:
-		soul += Game.cfg().soul_up * dt
+			open = 1.0
+		elif m.slipped:
+			open = maxf(open, 0.25)   # a slipped cloth: there's time to fix it, not forever
+	if open > 0.0:
+		soul += Game.cfg().soul_up * open * dt
 	else:
 		soul -= Game.cfg().soul_down * dt
 	soul = clampf(soul, 0.0, 100.0)

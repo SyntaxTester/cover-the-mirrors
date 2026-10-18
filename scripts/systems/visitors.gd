@@ -1,5 +1,9 @@
 extends Node
 
+signal plan_ready(plan: Dictionary)
+signal visitor_arrived(g)
+signal visitor_spoke(g)
+
 const GUEST := preload("res://scenes/guest.tscn")
 const IN_PT := Vector3(13.2, 0, 2.6)
 const OUT_PT := Vector3(15.4, 0, 2.6)
@@ -13,6 +17,11 @@ var hatch
 var door
 var dog
 var board: Label3D
+var lamp: OmniLight3D
+var lamp_energy := 0.0
+var lamp_col := Color.WHITE
+var raw: Dictionary = {}
+var plan: Dictionary = {}
 var queue: Array = []
 var looks: Dictionary = {}
 var times: Array = []
@@ -25,6 +34,8 @@ var inside: Array = []
 var seats: Array = []
 var taken := {}
 var sleep_t := 0.0
+var report: Array = []
+var rng := RandomNumberGenerator.new()
 
 
 func _ready() -> void:
@@ -37,17 +48,22 @@ func _ready() -> void:
 	door = level.get_node("FrontDoor")
 	dog = level.get_node("Hall/Dog")
 	board = level.get_node("Hall/GuestList")
+	lamp = level.get_node_or_null("Hall/DoorLamp/Light") as OmniLight3D
+	if lamp:
+		lamp_energy = lamp.light_energy
+		lamp_col = lamp.light_color
 	seats = level.get_node("Markers/Seats").get_children()
+	rng.randomize()
 	Game.night_started.connect(begin)
+	Game.night_won.connect(_morning)
 
 
 func begin(n: int) -> void:
-	var raw: Dictionary = JSON.parse_string(FileAccess.get_file_as_string("res://data/guests.json"))
+	raw = JSON.parse_string(FileAccess.get_file_as_string("res://data/guests.json"))
 	looks = raw.get("looks", {})
-	var nights: Array = raw.get("nights", [])
-	queue = nights[n] if n < nights.size() else []
-	var k := mini(int(Game.cfg().knocks), queue.size())
-	queue = queue.slice(0, k)
+	plan = NightPlan.build(n, raw, Game.run, rng)
+	queue = plan.queue
+	var k := queue.size()
 	times.clear()
 	var t0: float = Config.knock_start
 	var t1: float = Game.cfg().duration - Config.knock_end_margin
@@ -62,6 +78,7 @@ func begin(n: int) -> void:
 			Game.doubles_total += 1
 	sleep_t = next_sleep()
 	update_board()
+	plan_ready.emit(plan)
 
 
 func next_sleep() -> float:
@@ -83,12 +100,27 @@ func _process(dt: float) -> void:
 				knock_t = Config.knock_repeat
 			if door_t >= Config.door_wait:
 				turn_away()
+	_lamp(dt)
 	sleep_t -= dt
 	if sleep_t <= 0.0:
 		sleep_t = next_sleep()
 		var c := inside.filter(func(g): return g.can_sleep())
 		if not c.is_empty():
-			c.pick_random().fall_asleep()
+			# the drunk and the old dozers go first
+			var heavy := c.filter(func(g): return g.role in ["drunk", "sleepy"])
+			var pick = heavy.pick_random() if not heavy.is_empty() and randf() < 0.6 else c.pick_random()
+			pick.fall_asleep()
+
+
+## The lamp by the door burns low and blue while a cold one stands outside.
+func _lamp(dt: float) -> void:
+	if lamp == null:
+		return
+	var cold: bool = at_door != null and is_instance_valid(at_door) and at_door.sign_on("cold")
+	var k := 1.0 if cold else 0.0
+	lamp.light_color = lamp.light_color.lerp(lamp_col.lerp(Color(0.55, 0.7, 1.0), k), dt * 2.0)
+	var flick := 1.0 - (0.35 + 0.25 * sin(Time.get_ticks_msec() * 0.03)) * k
+	lamp.light_energy = lerpf(lamp.light_energy, lamp_energy * flick, dt * 6.0)
 
 
 func arrive(e: Dictionary) -> void:
@@ -102,6 +134,8 @@ func arrive(e: Dictionary) -> void:
 	spoken = false
 	if g.sign_on("dog_growl"):
 		dog.alert(true)
+	visitor_arrived.emit(g)
+	get_tree().call_group("roles", "on_visitor_arrived", g)
 
 
 func hatch_changed(o: bool) -> void:
@@ -110,6 +144,8 @@ func hatch_changed(o: bool) -> void:
 	if o and not spoken:
 		spoken = true
 		at_door.say()
+		visitor_spoke.emit(at_door)
+		get_tree().call_group("roles", "on_visitor_spoke", at_door)
 	elif not o and spoken:
 		turn_away()
 
@@ -132,6 +168,7 @@ func let_in() -> void:
 	inside.append(g)
 	if g.double:
 		Game.doubles_let += 1
+		Game.run.doubles_let += 1
 	update_board()
 
 
@@ -139,6 +176,11 @@ func turn_away() -> void:
 	var g = at_door
 	at_door = null
 	dog.alert(false)
+	if not g.double:
+		# a real neighbour left out in the rain on a night like this...
+		Game.run.humans_refused += 1
+		if not Game.run.refused_tonight.has(g.nick):
+			Game.run.refused_tonight.append(g.nick)
 	g.leave(AWAY)
 
 
@@ -149,11 +191,38 @@ func expel(g) -> void:
 	taken.erase(g.seat)
 	if not g.double:
 		get_tree().call_group("vigil", "penalty")
+		Game.run.humans_expelled += 1
 	else:
+		Game.run.doubles_expelled += 1
 		Sounds.play(self, Sounds.VIOLINS, -8.0)   # you were right: it was one of them
 	door.swing_open(6.0)
+	if randf() < Config.expel_draft_chance:
+		_draft()
 	g.leave([IN_PT, OUT_PT] + AWAY)
 	update_board()
+
+
+## Opening the door at night lets the wind in: one candle may go out.
+func _draft() -> void:
+	var lit := get_tree().get_nodes_in_group("coffin_candles").filter(func(c): return c.lit)
+	if lit.size() > 1:
+		var c = lit.pick_random()
+		get_tree().create_timer(1.5).timeout.connect(_blow_out.bind(c))
+
+
+func _blow_out(c) -> void:
+	if is_instance_valid(c) and c.lit:
+		c.put_out()
+
+
+## A double made it to the coffin: it is gone, and the dead man stirs.
+func double_reached(g) -> void:
+	inside.erase(g)
+	taken.erase(g.seat)
+	Sounds.play(self, Sounds.JUMPSCARE, -4.0)
+	g.queue_free()
+	update_board()
+	Game.corpse_stir()
 
 
 func free_seat() -> Node3D:
@@ -180,8 +249,25 @@ func update_board() -> void:
 	board.text = "INSIDE:\n" + ("\n".join(names) if names.size() > 0 else "-")
 
 
+## Dawn: who is missing, and who sat with us that shouldn't have.
+func _morning(_n: int) -> void:
+	report.clear()
+	for n in Game.run.refused_last:
+		report.append("%s was found by the bog road at first light." % n)
+		if not Game.run.lost.has(n):
+			Game.run.lost.append(n)
+	var left := inside.filter(func(g): return is_instance_valid(g) and g.double)
+	Game.run.doubles_left_inside += left.size()
+	for g in left:
+		report.append("%s's chair was cold at dawn. Nobody saw them leave." % g.nick)
+
+
 func debug_line() -> String:
 	var nxt := "-"
 	if idx < times.size():
 		nxt = "%.0f" % times[idx]
-	return "guests %d awake %d  door %s  knock %d/%d next %s  sleep %.0f" % [inside.size(), awake_count(), at_door.nick if at_door else "-", idx, times.size(), nxt, sleep_t]
+	var who := "-"
+	if at_door:
+		who = "%s%s %s" % [at_door.nick, " (D)" if at_door.double else "", at_door.signs]
+	return "guests %d awake %d  door %s  knock %d/%d next %s  sleep %.0f  corpse %d" % [
+		inside.size(), awake_count(), who, idx, times.size(), nxt, sleep_t, Game.run.corpse_stage]

@@ -4,6 +4,7 @@ signal night_started(n: int)
 signal night_lost(reason: String)
 signal night_won(n: int)
 signal bell
+signal corpse_stirred(stage: int)
 
 enum State { PLAY, LOST, WON }
 
@@ -13,6 +14,27 @@ var t := 0.0
 var bell_t := 0.0
 var doubles_let := 0
 var doubles_total := 0
+## What happened over the whole run (all nights); decides the ending.
+var run := {}
+var run_at_night_start := {}
+
+
+func _ready() -> void:
+	reset_run()
+
+
+func reset_run() -> void:
+	run = {
+		"corpse_stage": 0,        # doubles that reached the coffin
+		"refused_tonight": [],    # real guests left out in the rain tonight
+		"refused_last": [],       # ...last night: their doubles come back
+		"lost": [],               # everyone who didn't make it, for the ending
+		"humans_refused": 0,
+		"humans_expelled": 0,
+		"doubles_let": 0,
+		"doubles_expelled": 0,
+		"doubles_left_inside": 0,
+	}
 
 
 func cfg() -> Dictionary:
@@ -25,6 +47,9 @@ func start_night(n: int) -> void:
 	bell_t = 0.0
 	doubles_let = 0
 	state = State.PLAY
+	if run.is_empty():
+		reset_run()
+	run_at_night_start = run.duplicate(true)
 	night_started.emit(night)
 
 
@@ -38,6 +63,8 @@ func _process(dt: float) -> void:
 		bell.emit()
 	if t >= cfg().duration:
 		state = State.WON
+		run.refused_last = run.refused_tonight.duplicate()
+		run.refused_tonight = []
 		night_won.emit(night)
 
 
@@ -62,6 +89,7 @@ func is_last() -> bool:
 
 
 func restart() -> void:
+	run = run_at_night_start.duplicate(true)   # replay the night as it began
 	get_tree().reload_current_scene()
 
 
@@ -72,4 +100,15 @@ func next_night() -> void:
 
 func new_game() -> void:
 	night = 0
+	reset_run()
 	get_tree().reload_current_scene()
+
+
+## A double reached the coffin. The dead man stirs; at the last stage he sits up.
+func corpse_stir() -> void:
+	if state != State.PLAY:
+		return
+	run.corpse_stage += 1
+	corpse_stirred.emit(run.corpse_stage)
+	if run.corpse_stage >= Config.corpse_stages:
+		lose("double")

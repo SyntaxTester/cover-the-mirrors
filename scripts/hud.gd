@@ -4,7 +4,7 @@ const LOSE := {
 	"candles": "The candles went out.",
 	"soul": "You looked into the mirror for too long.",
 	"vigil": "The wake fell silent.",
-	"double": "Something reached the coffin.",
+	"double": "Three of them reached the coffin.",
 }
 const TYPE_SPEED := 45.0          # subtitle letters per second
 const NIGHT_MUSIC_DB := -14.0
@@ -26,6 +26,7 @@ var type_pos := 0.0
 var music: AudioStreamPlayer
 var text_snd: AudioStreamPlayer
 var music_tween: Tween
+var questions: Label
 
 
 func _ready() -> void:
@@ -34,6 +35,20 @@ func _ready() -> void:
 	dbg.visible = false
 	intro.modulate.a = 0.0
 	subtitle.text = ""
+	sub.offset_bottom = 125.0
+	sub.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+	questions = Label.new()   # what you can ask through the hatch
+	questions.add_theme_font_size_override("font_size", 9)
+	questions.add_theme_color_override("font_color", Color(0.86, 0.82, 0.74))
+	questions.add_theme_color_override("font_outline_color", Color(0, 0, 0, 0.8))
+	questions.add_theme_constant_override("outline_size", 2)
+	questions.set_anchors_preset(Control.PRESET_BOTTOM_LEFT)
+	questions.offset_left = 8.0
+	questions.offset_top = -100.0
+	questions.offset_right = 230.0
+	questions.offset_bottom = -40.0
+	questions.vertical_alignment = VERTICAL_ALIGNMENT_BOTTOM
+	add_child(questions)
 	music = AudioStreamPlayer.new()
 	music.bus = "Master"
 	add_child(music)
@@ -49,6 +64,11 @@ func _ready() -> void:
 
 func set_hint(s: String) -> void:
 	hint.text = s
+
+
+func set_questions(s: String) -> void:
+	if questions.text != s:
+		questions.text = s
 
 
 ## Subtitle that types itself out, with the typing sound while it does.
@@ -79,12 +99,36 @@ func lost(reason: String) -> void:
 
 
 func won(n: int) -> void:
-	var s := "Doubles let in: %d of %d" % [Game.doubles_let, Game.doubles_total]
 	_music(Sounds.MUSIC_MORNING, -6.0, 4.0)
+	questions.text = ""
+	var v = get_tree().get_first_node_in_group("visitors")
+	var lines := PackedStringArray()
+	if v:
+		for l in v.report:
+			lines.append(l)
+	lines.append("Doubles let in tonight: %d of %d" % [Game.doubles_let, Game.doubles_total])
 	if Game.is_last():
-		show_end("Morning. The funeral.", "%s\n\nR - start over" % s)
+		var e := ending()
+		lines.insert(0, e[1])
+		show_end(e[0], "%s\n\nR - start over" % "\n".join(lines))
 	else:
-		show_end("Morning.", "Night %d survived\n%s\n\nE - next night   R - restart" % [n + 1, s])
+		show_end("Morning.", "Night %d survived\n%s\n\nE - next night   R - restart" % [n + 1, "\n".join(lines)])
+
+
+## The last morning: what the parish remembers about this wake.
+func ending() -> Array:
+	var r: Dictionary = Game.run
+	if r.corpse_stage >= 2:
+		return ["The lid was nailed down in a hurry.",
+			"Twice they reached him. The priest would not say what he saw in the coffin."]
+	if r.doubles_left_inside >= 2:
+		return ["More walked behind the coffin than were ever let in.",
+			"Some of the mourners at the funeral had come a long way. Further than the bog road."]
+	if r.lost.size() >= 2 or r.humans_refused >= 3:
+		return ["Fewer at the funeral than at the wake.",
+			"You kept the dead out. You kept the living out too: %s." % ", ".join(r.lost)]
+	return ["They carried him to the churchyard with the whole parish behind.",
+		"Not one of the other crowd sat with him. He went to his rest in peace."]
 
 
 func show_end(a: String, b: String) -> void:

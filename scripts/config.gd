@@ -9,7 +9,12 @@ var interact_dist := 2.0
 var zoom_fov := 32.0
 
 var guest_speed := 1.1
-var stalk_speed := 0.55
+var stalk_speed := 0.85        # a double only moves while nobody is looking at it
+var sight_dist := 14.0         # how far the player "sees" a double / an apparition
+var signs_per_double := 2
+var human_sign_chance := 0.2   # a real guest shows one innocent-looking sign
+var expel_draft_chance := 0.5  # opening the door to throw someone out may blow a candle out
+var corpse_stages := 3         # doubles reaching the coffin before the dead man sits up
 var knock_start := 12.0
 var knock_end_margin := 50.0
 var knock_jitter := 8.0
@@ -27,13 +32,17 @@ var bell_every := 45.0
 
 var nights := [
 	{
-		"duration": 300.0,
+		"duration": 330.0,
 		"candle_min": 140.0,
 		"candle_max": 200.0,
 		"dark_grace": 15.0,
 		"soul_up": 14.0,
 		"soul_down": 7.0,
-		"knocks": 7,
+		"questions": 4,
+		"sabotage_min": 22.0,
+		"sabotage_max": 35.0,
+		"event_every": 70.0,
+		"signs": ["no_breath", "clean_boots", "dog_growl", "dry", "wrong_answer", "wrong_detail"],
 		"doubles": 1,
 		"sleep_every": 90.0,
 		"vigil_drain": 0.6,
@@ -42,13 +51,17 @@ var nights := [
 		"double_walk_max": 80.0,
 	},
 	{
-		"duration": 360.0,
+		"duration": 420.0,
 		"candle_min": 110.0,
 		"candle_max": 170.0,
 		"dark_grace": 12.0,
 		"soul_up": 18.0,
 		"soul_down": 5.0,
-		"knocks": 10,
+		"questions": 3,
+		"sabotage_min": 18.0,
+		"sabotage_max": 30.0,
+		"event_every": 55.0,
+		"signs": ["no_breath", "clean_boots", "dog_growl", "dry", "wrong_answer", "wrong_detail", "no_shadow"],
 		"doubles": 2,
 		"sleep_every": 70.0,
 		"vigil_drain": 0.8,
@@ -57,13 +70,17 @@ var nights := [
 		"double_walk_max": 70.0,
 	},
 	{
-		"duration": 420.0,
+		"duration": 510.0,
 		"candle_min": 90.0,
 		"candle_max": 150.0,
 		"dark_grace": 10.0,
 		"soul_up": 22.0,
 		"soul_down": 4.0,
-		"knocks": 11,
+		"questions": 3,
+		"sabotage_min": 14.0,
+		"sabotage_max": 26.0,
+		"event_every": 45.0,
+		"signs": ["no_breath", "clean_boots", "dog_growl", "dry", "wrong_answer", "wrong_detail", "no_shadow", "cold"],
 		"doubles": 3,
 		"sleep_every": 55.0,
 		"vigil_drain": 1.0,
