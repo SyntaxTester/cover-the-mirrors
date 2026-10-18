@@ -1,39 +1,59 @@
 {
 	"signs": ["no_breath", "clean_boots", "dog_growl"],
 	"looks": {
-		"Seamus": {"model": "base", "coat": "#3d4a3a", "hat": true, "hat_color": "#2a2520", "scarf": false},
-		"Bridget": {"model": "base", "coat": "#5a2f2a", "hat": false, "scarf": true, "scarf_color": "#c8b89a"},
-		"Old Tom": {"model": "base", "coat": "#4a4238", "hat": true, "hat_color": "#1e1e1e", "scarf": true, "scarf_color": "#2e3b55"},
-		"Nora": {"model": "base", "coat": "#2f3a4f", "hat": false, "scarf": true, "scarf_color": "#8a7a3a"},
-		"Michael": {"model": "base", "coat": "#6a5a40", "hat": true, "hat_color": "#2b2b2b", "scarf": false},
-		"Paddy": {"model": "base", "coat": "#33302b", "hat": true, "hat_color": "#3a2e22", "scarf": true, "scarf_color": "#5a1f1f"},
-		"Eileen": {"model": "base", "coat": "#4f2e45", "hat": false, "scarf": true, "scarf_color": "#d0c8b8"},
-		"Mary Kate": {"model": "base", "coat": "#556070", "hat": false, "scarf": true, "scarf_color": "#7a2a22"},
-		"Siobhan": {"model": "base", "coat": "#3a3a3a", "hat": false, "scarf": true, "scarf_color": "#3b5a3b"}
+		"Seamus": {"model": "SEAN"},
+		"Bridget": {"model": "BRIDGET"},
+		"Old Tom": {"model": "THOMAS"},
+		"Nora": {"model": "MARY"},
+		"Michael": {"model": "MICHAEL"},
+		"Paddy": {"model": "HUGH"},
+		"Eileen": {"model": "ELLEN"},
+		"Mary Kate": {"model": "CATHERINE"},
+		"Siobhan": {"model": "MARGARET"},
+		"Sultan": {"model": "SULTAN_ESMAGZAM"},
+		"James": {"model": "JAMES"},
+		"William": {"model": "WILLIAM"},
+		"Daniel": {"model": "DANIEL"},
+		"Joseph": {"model": "JOSEPH"},
+		"John": {"model": "JOHN"},
+		"Jeremiah": {"model": "JEREMIAH"},
+		"Denis": {"model": "DENIS"},
+		"Timothy": {"model": "TIMOTHY"},
+		"Peter": {"model": "PETER"},
+		"Martin": {"model": "MARTIN"}
 	},
 	"nights": [
 		[
 			{"name": "Seamus", "double": false, "signs": [], "line": "Evening. I came as soon as I heard. God rest him."},
 			{"name": "Bridget", "double": false, "signs": [], "line": "Let me in, child. The rain is in my bones."},
+			{"name": "Sultan", "double": false, "signs": [], "line": "Is there ale? Grand. I'll sing him a song, so I will!"},
 			{"name": "Seamus", "double": true, "signs": ["no_breath"], "line": "Evening. I came as soon as I heard. God rest her."},
-			{"name": "Old Tom", "double": false, "signs": [], "line": "I knew him forty years. I'll sit with him tonight."}
+			{"name": "Old Tom", "double": false, "signs": [], "line": "I knew him forty years. I'll sit with him tonight."},
+			{"name": "James", "double": false, "signs": [], "line": "God bless all here. He loved a good song, didn't he?"},
+			{"name": "Daniel", "double": false, "signs": [], "line": "S-sorry. Am I too early? Mam said I had to come."}
 		],
 		[
 			{"name": "Nora", "double": false, "signs": [], "line": "I've brought a candle for the window."},
 			{"name": "Michael", "double": false, "signs": [], "line": "Open up, it's Michael from the crossroads."},
+			{"name": "Joseph", "double": false, "signs": [], "line": "Are the mirrors covered? Every one of them? Good."},
 			{"name": "Nora", "double": true, "signs": ["clean_boots"], "line": "I've brought a candle for the window."},
 			{"name": "Paddy", "double": false, "signs": [], "line": "Is there a chair by the fire for an old man?"},
+			{"name": "John", "double": false, "signs": [], "line": "I made the coffin. Thought I'd see him into it."},
 			{"name": "Eileen", "double": false, "signs": [], "line": "Sorry I'm late. The bog road is all water."},
-			{"name": "Michael", "double": true, "signs": ["dog_growl", "no_breath"], "line": "Open up. It is Michael. From the crossroads."}
+			{"name": "Michael", "double": true, "signs": ["dog_growl", "no_breath"], "line": "Open up. It is Michael. From the crossroads."},
+			{"name": "Martin", "double": false, "signs": [], "line": "I brought the fiddle. Just a slow air, mind."}
 		],
 		[
 			{"name": "Mary Kate", "double": false, "signs": [], "line": "It's Mary Kate. Mam sent me over with bread."},
-			{"name": "Seamus", "double": false, "signs": [], "line": "Evening. I came as soon as I heard. God rest him."},
+			{"name": "Peter", "double": false, "signs": [], "line": "Evening. Peter, with the cart. I knew him well. I know everyone."},
 			{"name": "Mary Kate", "double": true, "signs": ["clean_boots"], "line": "It's Mary Kate. Mam sent me."},
-			{"name": "Old Tom", "double": false, "signs": [], "line": "I knew him forty years. I'll sit with him tonight."},
-			{"name": "Seamus", "double": true, "signs": ["dog_growl"], "line": "Evening. I came as soon as I heard."},
 			{"name": "Siobhan", "double": false, "signs": [], "line": "Is he laid out in the room? I'll say a prayer for him."},
-			{"name": "Old Tom", "double": true, "signs": ["no_breath"], "line": "I knew him forty years."}
+			{"name": "Denis", "double": false, "signs": [], "line": "Open the door! I've a drop here for the poor man!"},
+			{"name": "Jeremiah", "double": false, "signs": [], "line": "Did you hear it out on the road? Keening. It's close tonight."},
+			{"name": "Peter", "double": true, "signs": ["dog_growl"], "line": "Evening. Peter. I know everyone."},
+			{"name": "Timothy", "double": false, "signs": [], "line": "Evening... I'm from the farm up the hill. I won't be in the way."},
+			{"name": "William", "double": false, "signs": [], "line": "Make way. I'll not stand in the rain like a labourer."},
+			{"name": "William", "double": true, "signs": ["no_breath"], "line": "Make way. I will not stand in the rain."}
 		]
 	]
 }

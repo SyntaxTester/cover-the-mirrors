@@ -2,6 +2,10 @@ extends Interactable
 
 enum S { DOOR, WALK, SEATED, ASLEEP, LEAVE, STALK }
 
+const BOOT_CLEAN := preload("res://assets/materials/boot_clean.tres")
+const BOOT_MUD := preload("res://assets/materials/boot_mud.tres")
+const FALLBACK_MODEL := "SEAN"
+
 @onready var legs: Node3D = $Legs
 @onready var knee: Node3D = $Legs/Knee
 @onready var head: Node3D = $Head
@@ -22,6 +26,7 @@ var breath_t := 0.0
 var speed := 1.0
 var pitch := 0.0
 var yaw := 0.0
+var hip_y := 0.85
 
 
 func _ready() -> void:
@@ -36,28 +41,49 @@ func setup(d: Dictionary, look: Dictionary) -> void:
 	line = d.get("line", "")
 	double = d.get("double", false)
 	signs = d.get("signs", []) if double else []
-	paint($Torso, look.get("coat", "#4a4038"))
-	paint($Head/Hat/Brim, look.get("hat_color", "#222222"))
-	paint($Head/Hat/Crown, look.get("hat_color", "#222222"))
-	paint($Scarf, look.get("scarf_color", "#7a2a22"))
-	$Head/Hat.visible = look.get("hat", false)
-	$Scarf.visible = look.get("scarf", false)
-	var boot: Material = load("res://assets/materials/boot_clean.tres" if sign_on("clean_boots") else "res://assets/materials/boot_mud.tres")
-	$Legs/Knee/BootL.material_override = boot
-	$Legs/Knee/BootR.material_override = boot
+	build_model(str(look.get("model", FALLBACK_MODEL)))
 	if double:
 		for n in find_children("*", "GeometryInstance3D", true, false):
 			n.layers = 2
 
 
-func paint(n: MeshInstance3D, hex: String) -> void:
-	var m := StandardMaterial3D.new()
-	m.albedo_color = Color(hex)
-	m.roughness = 1.0
-	m.texture_filter = BaseMaterial3D.TEXTURE_FILTER_NEAREST
-	n.material_override = m
-	for c in n.find_children("*", "MeshInstance3D", true, false):
-		c.material_override = m
+# Builds the PS1 villager (scenes/ps1_villager.gd) named in guests.json as
+# four meshes on the Legs / Knee / Head pivots so sitting and head turns work.
+func build_model(model: String) -> void:
+	var id := PS1Villager.character_from_name(model)
+	if id < 0:
+		push_warning("Guest '%s': unknown model '%s', using %s" % [nick, model, FALLBACK_MODEL])
+		id = PS1Villager.character_from_name(FALLBACK_MODEL)
+	# the "clean_boots" sign: real guests are muddy from the road, doubles are not
+	var clean := sign_on("clean_boots")
+	var boot: StandardMaterial3D = BOOT_CLEAN if clean else BOOT_MUD
+	var parts := PS1Villager.build_guest_parts(id, {
+		"shoe_col": boot.albedo_color,
+		"boots": "clean" if clean else "mud",
+	})
+	var piv: Dictionary = parts["pivots"]
+	var p_legs: Vector3 = piv["legs"]
+	var p_knee: Vector3 = piv["knee"]
+	var p_head: Vector3 = piv["head"]
+	hip_y = p_legs.y
+	legs.position = p_legs
+	knee.position = p_knee - p_legs
+	head.position = p_head
+	breath.position = parts["mouth"]
+	var mat: Material = parts["material"]
+	add_part(self, parts.get("body"), mat)
+	add_part(legs, parts.get("legs"), mat)
+	add_part(knee, parts.get("knee"), mat)
+	add_part(head, parts.get("head"), mat)
+
+
+func add_part(parent: Node3D, mesh: Mesh, mat: Material) -> void:
+	if mesh == null:
+		return
+	var mi := MeshInstance3D.new()
+	mi.mesh = mesh
+	mi.material_override = mat
+	parent.add_child(mi)
 
 
 func sign_on(s: String) -> bool:
@@ -145,7 +171,7 @@ func stand() -> void:
 
 func sit() -> void:
 	global_transform = seat.global_transform
-	global_position.y = seat.global_position.y - 0.8
+	global_position.y = seat.global_position.y - (hip_y - 0.05)
 	legs.rotation.x = PI / 2
 	knee.rotation.x = -PI / 2
 	state = S.SEATED
