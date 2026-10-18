@@ -1,0 +1,13 @@
+[gd_scene load_steps=3 format=3 uid="uid://c2jm2jj46ek74"]
+
+[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_asl66"]
+albedo_color = Color(0, 0, 0, 1)
+
+[sub_resource type="BoxMesh" id="BoxMesh_xrpag"]
+size = Vector3(0.16, 0.012, 0.012)
+
+[node name="ClockArrow1" type="MeshInstance3D"]
+transform = Transform3D(-0.5161967, -0.56453484, -0.0073902383, 0.3530504, -0.8254092, 0.00505452, -0.005618452, 0, 0.99659425, 0, 0, 0)
+material_override = SubResource("StandardMaterial3D_asl66")
+mesh = SubResource("BoxMesh_xrpag")
+skeleton = NodePath("../..")
