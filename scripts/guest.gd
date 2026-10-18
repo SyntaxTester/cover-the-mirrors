@@ -27,6 +27,8 @@ var speed := 1.0
 var pitch := 0.0
 var yaw := 0.0
 var hip_y := 0.85
+var steps: AudioStreamPlayer3D
+var chase: AudioStreamPlayer3D
 
 
 func _ready() -> void:
@@ -34,6 +36,31 @@ func _ready() -> void:
 	add_to_group("guests")
 	breath_t = randf() * 3.0
 	breath.emitting = false
+	steps = _loop_player(Sounds.STEPS, -6.0, 2.5)
+	chase = _loop_player(Sounds.CHASE, -10.0, 4.0)
+
+
+func _loop_player(s: AudioStream, db: float, unit: float) -> AudioStreamPlayer3D:
+	var p := AudioStreamPlayer3D.new()
+	p.stream = Sounds.looped(s)
+	p.volume_db = db
+	p.unit_size = unit
+	p.bus = "SFX"
+	add_child(p)
+	p.position = Vector3(0, 0.3, 0)
+	return p
+
+
+## Footsteps while walking; slow and heavy for a double creeping to the coffin.
+func _update_sounds() -> void:
+	var moving := (state == S.WALK or state == S.LEAVE or state == S.STALK) and not path.is_empty()
+	if moving and not steps.playing:
+		steps.pitch_scale = 0.8 if state == S.STALK else randf_range(0.95, 1.05)
+		steps.play(randf() * 40.0)
+	elif not moving and steps.playing:
+		steps.stop()
+	if state != S.STALK and chase.playing:
+		chase.stop()
 
 
 func setup(d: Dictionary, look: Dictionary) -> void:
@@ -115,6 +142,7 @@ func _process(dt: float) -> void:
 	pitch = lerpf(pitch, tp, dt * 2.0)
 	head.rotation = Vector3(pitch, yaw, 0)
 	breathe(dt)
+	_update_sounds()
 
 
 func yaw_to_player() -> float:
@@ -203,6 +231,8 @@ func stalk() -> void:
 	state = S.STALK
 	speed = Config.stalk_speed
 	stand()
+	Sounds.play(self, Sounds.RISER, -6.0)   # something is wrong in the room
+	chase.play()
 
 
 func can_sleep() -> bool:

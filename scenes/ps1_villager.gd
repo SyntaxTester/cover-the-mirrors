@@ -183,6 +183,7 @@ const HEAD_TOP := 0.256      # head-local
 const FACE_W := 0.18         # width / height the face texture is projected over
 const FACE_H := 0.26
 const FALL_Y := 0.12         # long hair hangs straight down below this (head-local)
+const FACE_DIR := "res://assets/faces/"   # optional face pictures, <name>.png
 
 # Head cross-sections, chin to crown: [y, half-width, half-depth, centre z]
 const HEAD_RINGS := [
@@ -733,8 +734,15 @@ func _build_character(id: int) -> void:
 	_stack.clear()
 	_grain = CLOTH_GRAIN
 	_torso_tw = 0.5 * float(p.girth) + (0.06 if p.oversized else 0.0)
+	var photo := _face_photo(key)
+	p["photo"] = photo != null
+	if photo != null:
+		p["skin"] = _photo_skin(photo)   # neck, ears and hands match the photo
+		p["glasses"] = false             # the picture already shows the real face
 	_rng.seed = hash(key)
 	_paint_face(p)
+	if photo != null:
+		_paste_face(photo)
 	_paint_clothes(p)
 	_rng.seed = hash(key + "/mesh")
 	_xf = Transform3D(Basis.from_scale(Vector3(1.0, float(p.height), 1.0)), Vector3.ZERO)
@@ -1215,6 +1223,8 @@ func _paint_face(p: Dictionary) -> void:
 				k *= 0.94
 			k *= 1.0 + _rng.randf_range(-0.025, 0.025)
 			_px(x, y, Color(skin.r * k, skin.g * k, skin.b * k))
+	if p.photo:
+		return   # the face picture supplies the features
 
 	var cx := 32.0
 	var ey := _fy(0.140)
@@ -1326,6 +1336,56 @@ func _paint_face(p: Dictionary) -> void:
 				_pline(cx + s * 1.0, my - 3.0, cx + s * 9.5, my + 0.5, fc, 1.0, 3)
 		"small_moustache":
 			_pline(cx - 4.0, my - 2.2, cx + 4.0, my - 2.2, fc, 1.0, 2)
+
+
+## A face picture for a villager, if one exists: res://assets/faces/<name>.png
+## (or .jpg / .webp), e.g. sultan_esmagzam.png. It is laid over the painted
+## face, so transparent pixels fall back to it. Layout (any size, stretched to
+## 62×64): eyes 22 % of the width apart on row 46 %, mouth on row 76 %, chin
+## at the bottom edge.
+func _face_photo(key: String) -> Image:
+	for ext: String in ["png", "jpg", "jpeg", "webp"]:
+		var path := FACE_DIR + key.to_lower() + "." + ext
+		if not ResourceLoader.exists(path):
+			continue
+		var tex := load(path) as Texture2D
+		if tex == null:
+			continue
+		var img := tex.get_image()
+		if img == null:
+			continue
+		img = img.duplicate() as Image
+		if img.is_compressed():
+			img.decompress()
+		img.convert(Image.FORMAT_RGBA8)
+		if img.get_width() != 62 or img.get_height() != 64:
+			img.resize(62, 64, Image.INTERPOLATE_BILINEAR)
+		return img
+	return null
+
+
+## Average cheek colour of a face picture.
+func _photo_skin(img: Image) -> Color:
+	var sum := Color(0, 0, 0, 0)
+	var n := 0
+	for y in range(32, 45):
+		for x: int in [11, 13, 15, 17, 19, 42, 44, 46, 48, 50]:
+			var c := img.get_pixel(x, y)
+			if c.a > 0.95:
+				sum += Color(c.r, c.g, c.b, 0)
+				n += 1
+	if n == 0:
+		return SKIN_FAIR
+	return Color(sum.r / n, sum.g / n, sum.b / n)
+
+
+func _paste_face(img: Image) -> void:
+	_clip = Rect2i(1, 0, 62, 64)
+	for y in 64:
+		for x in 62:
+			var c := img.get_pixel(x, y)
+			if c.a > 0.0:
+				_px(x + 1, y, _tex(Color(c.r, c.g, c.b), 1.6), c.a)
 
 
 func _paint_mouth(kind: String, cx: float, my: float, mw: float, skin: Color, female: bool) -> void:

@@ -29,6 +29,8 @@ func set_open(o: bool) -> void:
 	if o == open:
 		return
 	open = o
+	# the little sliding shutter: the door sounds, higher and quieter
+	Sounds.play_at(self, lid.global_position, Sounds.DOOR_OPEN if o else Sounds.DOOR_CLOSE, -9.0, "SFX", 1.45, 0.05, 1.5)
 	toggled.emit(o)
 	get_tree().call_group("visitors", "hatch_changed", o)
 

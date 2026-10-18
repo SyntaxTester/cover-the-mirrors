@@ -40,10 +40,14 @@ func _ready() -> void:
 
 
 func interact(_p: Node) -> void:
+	if not lifted:
+		Sounds.play_at(self, cloth.global_position, Sounds.CLOTH, -6.0, "SFX", 1.0, 0.08, 2.0)
 	lifted = true
 
 
 func release(_p: Node) -> void:
+	if lifted:
+		Sounds.play_at(self, cloth.global_position, Sounds.CLOTH, -8.0, "SFX", 1.2, 0.08, 2.0)
 	lifted = false
 
 

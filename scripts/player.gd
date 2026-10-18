@@ -9,6 +9,7 @@ var held: Interactable
 var hud: Node
 var bob := 0.0
 var cam_y := 0.0
+var steps: AudioStreamPlayer
 @export var run_speed := 4.0
 
 
@@ -17,6 +18,11 @@ func _ready() -> void:
 	ray.target_position = Vector3(0, 0, -Config.interact_dist)
 	cam_y = cam.position.y
 	Input.mouse_mode = Input.MOUSE_MODE_CAPTURED
+	steps = AudioStreamPlayer.new()
+	steps.stream = Sounds.looped(Sounds.STEPS)
+	steps.volume_db = -14.0
+	steps.bus = "SFX"
+	add_child(steps)
 
 
 func _unhandled_input(e: InputEvent) -> void:
@@ -24,8 +30,12 @@ func _unhandled_input(e: InputEvent) -> void:
 		rotate_y(-e.relative.x * Config.mouse_sens)
 		head.rotation.x = clampf(head.rotation.x - e.relative.y * Config.mouse_sens, -1.4, 1.4)
 	elif e.is_action_pressed("pause"):
+		if Input.mouse_mode == Input.MOUSE_MODE_CAPTURED:
+			Sounds.play(self, Sounds.UI_CLOSE, -8.0)
 		Input.mouse_mode = Input.MOUSE_MODE_VISIBLE
 	elif e is InputEventMouseButton and e.pressed and Game.state == Game.State.PLAY:
+		if Input.mouse_mode != Input.MOUSE_MODE_CAPTURED:
+			Sounds.play(self, Sounds.UI_OPEN, -8.0)
 		Input.mouse_mode = Input.MOUSE_MODE_CAPTURED
 
 
@@ -50,6 +60,12 @@ func _physics_process(dt: float) -> void:
 	move_and_slide()
 
 	var sp := Vector2(velocity.x, velocity.z).length()
+	var walking := live and is_on_floor() and sp > 0.4
+	if walking and not steps.playing:
+		steps.play(randf() * 40.0)
+	elif not walking and steps.playing:
+		steps.stop()
+	steps.pitch_scale = 1.3 if running else 1.0
 	bob += dt * sp * Config.bob_freq
 	cam.position.y = cam_y + sin(bob) * Config.bob_amount * minf(sp / speed, 1.0)
 

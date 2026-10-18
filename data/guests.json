@@ -35,6 +35,7 @@
 		[
 			{"name": "Nora", "double": false, "signs": [], "line": "I've brought a candle for the window."},
 			{"name": "Michael", "double": false, "signs": [], "line": "Open up, it's Michael from the crossroads."},
+			{"name": "Sultan", "double": false, "signs": [], "line": "Evenin' again! I brought the ale back. Well... most of it."},
 			{"name": "Joseph", "double": false, "signs": [], "line": "Are the mirrors covered? Every one of them? Good."},
 			{"name": "Nora", "double": true, "signs": ["clean_boots"], "line": "I've brought a candle for the window."},
 			{"name": "Paddy", "double": false, "signs": [], "line": "Is there a chair by the fire for an old man?"},
@@ -48,6 +49,7 @@
 			{"name": "Peter", "double": false, "signs": [], "line": "Evening. Peter, with the cart. I knew him well. I know everyone."},
 			{"name": "Mary Kate", "double": true, "signs": ["clean_boots"], "line": "It's Mary Kate. Mam sent me."},
 			{"name": "Siobhan", "double": false, "signs": [], "line": "Is he laid out in the room? I'll say a prayer for him."},
+			{"name": "Sultan", "double": false, "signs": [], "line": "Third night! I know all the songs now, so I do. Shall I sing one for him?"},
 			{"name": "Denis", "double": false, "signs": [], "line": "Open the door! I've a drop here for the poor man!"},
 			{"name": "Jeremiah", "double": false, "signs": [], "line": "Did you hear it out on the road? Keening. It's close tonight."},
 			{"name": "Peter", "double": true, "signs": ["dog_growl"], "line": "Evening. Peter. I know everyone."},

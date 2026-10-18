@@ -1903,6 +1903,12 @@ transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 11.4, 0.46, 9.7)
 [node name="Seat7" type="Marker3D" parent="Markers/Seats" groups=["seats"]]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 12.6, 0.46, 9.7)
 
+[node name="Seat8" type="Marker3D" parent="Markers/Seats" groups=["seats"]]
+transform = Transform3D(0.7466599, 0, 0.665206, 0, 1, 0, -0.665206, 0, 0.7466599, 9, 0.45, 4.75)
+
+[node name="Seat9" type="Marker3D" parent="Markers/Seats" groups=["seats"]]
+transform = Transform3D(0.2530277, 0, 0.967459, 0, 1, 0, -0.967459, 0, 0.2530277, 9.8, 0.45, 2.85)
+
 [node name="church" parent="." instance=ExtResource("35_asl66")]
 transform = Transform3D(-0.2606562, 0, 0.9654317, 0, 1, 0, -0.9654317, 0, -0.2606562, 34.289013, -0.03000021, -2.2322097)
 

@@ -149,6 +149,8 @@ func expel(g) -> void:
 	taken.erase(g.seat)
 	if not g.double:
 		get_tree().call_group("vigil", "penalty")
+	else:
+		Sounds.play(self, Sounds.VIOLINS, -8.0)   # you were right: it was one of them
 	door.swing_open(6.0)
 	g.leave([IN_PT, OUT_PT] + AWAY)
 	update_board()
