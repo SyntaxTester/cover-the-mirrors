@@ -5,6 +5,10 @@ const SYSTEMS := [
 	["Interview", preload("res://scripts/systems/interview.gd")],
 	["Roles", preload("res://scripts/systems/roles.gd")],
 	["Director", preload("res://scripts/systems/director.gd")],
+	["Attack", preload("res://scripts/systems/attack.gd")],
+	["Storm", preload("res://scripts/systems/storm.gd")],
+	["Blind", preload("res://scripts/systems/blind.gd")],
+	["Pause", preload("res://scripts/pause.gd")],
 ]
 const PRIEST := preload("res://scripts/priest.gd")
 const PRIEST_SEAT := Vector3(2.4, 0.46, 4.85)   # ChairA in the coffin room, facing the coffin

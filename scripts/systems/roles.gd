@@ -30,7 +30,54 @@ const LORE_OPEN := {
 	"Old Tom": "My grandmother used to say... ",
 	"Jeremiah": "I'll tell you what the old people know. ",
 }
-const SAY_GAP := 7.0   # seconds between chatter lines, so subtitles stay readable
+const SAY_GAP := 11.0   # seconds between chatter lines, so subtitles stay readable
+
+const WATCH_ODD := [
+	"Someone's at the door... they didn't come up the lane. They were just there.",
+	"I was watching the lane the whole time. Nobody walked up it. Nobody.",
+	"That one came out of the field, not the road. Who walks the bog in the dark?",
+	"Did you see their lantern? No? Neither did I. They had none.",
+]
+const WATCH_OK := [
+	"It's only %s. I saw them coming up the lane.",
+	"That's %s at the door. I watched them come all the way from the crossroads.",
+	"%s, I'd say. Same slow walk up the lane as always.",
+	"I saw %s stop at the gate and bless themselves. That's them, alright.",
+]
+const VOUCH_ODD := [
+	"Hold on. That's not how %s talks.",
+	"That's %s's voice... but %s never said a word like that in their life.",
+	"Something's off. %s always stammers on the first word. Not tonight.",
+	"I've known %s since we were children. That isn't them at the door.",
+]
+const VOUCH_OK := [
+	"That's %s, right enough. I'd know that voice anywhere.",
+	"Aye, that's %s. Nobody else mumbles like that.",
+	"%s, sure as day. Let them in out of the rain.",
+	"I'd swear to it, that's %s. Same as ever.",
+]
+const GOSSIP := [
+	"I heard %s whispering at the door of the room. Whispering to HIM.",
+	"%s hasn't touched the tea. Not a sip all night.",
+	"I sat by %s for an hour. They never blinked. Not once.",
+	"Did you notice? %s keeps counting us. Over and over.",
+]
+const NERVOUS := [
+	"I-I don't like the way %s keeps looking at the coffin.",
+	"Why is %s sitting so still? N-nobody sits that still.",
+	"%s smiled at me. Just now. With all their teeth.",
+	"I keep hearing %s breathing... b-but their chest doesn't move.",
+]
+const CARPENTER := [
+	"Here! Who's that going in to him? Stop them!",
+	"Somebody's going into the room! Ronan, get after them!",
+	"That's not one of us walking in there! Stop it!",
+]
+const PIOUS := [
+	"The glass! Somebody cover the glass, for the love of God!",
+	"The mirror is bare! Cover it before it sees him!",
+	"Mother of God, the cloth's come off the glass!",
+]
 
 var visitors
 var vigil
@@ -117,8 +164,7 @@ func on_visitor_arrived(v) -> void:
 	for w in _inside_awake("watcher"):
 		var right := randf() < _rel(0.65)
 		var says_double: bool = v.double == right
-		var text := "Someone's at the door... they didn't come up the lane. They were just there." if says_double \
-			else "It's only %s. I saw them coming up the lane." % v.nick
+		var text: String = WATCH_ODD.pick_random() if says_double else WATCH_OK.pick_random() % v.nick
 		_later(2.0, func(): _say(w, text))
 		break
 
@@ -128,8 +174,8 @@ func on_visitor_spoke(v) -> void:
 	for p in _inside_awake("vouch"):
 		var right := randf() < _rel(0.8)
 		var says_double: bool = v.double == right
-		var text := "Hold on. That's not how %s talks." % v.nick if says_double \
-			else "That's %s, right enough. I'd know that voice anywhere." % v.nick
+		var tpl: String = VOUCH_ODD.pick_random() if says_double else VOUCH_OK.pick_random()
+		var text: String = tpl.replace("%s", v.nick)
 		_later(5.0, func(): _say(p, text, true))
 		return
 	for s in _inside_awake("singer"):
@@ -142,13 +188,14 @@ func on_visitor_spoke(v) -> void:
 
 func on_mirror_slipped(_m) -> void:
 	for j in _inside_awake("pious"):
-		_say(j, "The glass! Somebody cover the glass, for the love of God!", true)
+		_say(j, PIOUS.pick_random(), true)
 		return
 
 
 func on_stalk(d) -> void:
 	for c in _inside_awake("carpenter"):
-		_later(1.0, func(): _say(c, "Here! Who's that going in to him? Stop them!", true))
+		var line: String = CARPENTER.pick_random()
+		_later(1.0, func(): _say(c, line, true))
 		return
 
 
@@ -197,14 +244,14 @@ func _idle(g) -> void:
 				_say(g, "I've seen to the candles in the room. Don't you worry.")
 		"gossip":
 			if not doubles.is_empty() and randf() < _rel(0.7):
-				_say(g, "I heard %s whispering at the door of the room. Whispering to HIM." % doubles.pick_random().nick)
+				_say(g, (GOSSIP.pick_random() as String).replace("%s", doubles.pick_random().nick))
 			elif not others.is_empty() and randf() < 0.3:
-				_say(g, "I heard %s whispering at the door of the room. Whispering to HIM." % others.pick_random().nick)
+				_say(g, (GOSSIP.pick_random() as String).replace("%s", others.pick_random().nick))
 		"nervous":
 			if not doubles.is_empty() and randf() < _rel(0.6):
-				_say(g, "I-I don't like the way %s keeps looking at the coffin." % doubles.pick_random().nick)
+				_say(g, (NERVOUS.pick_random() as String).replace("%s", doubles.pick_random().nick))
 			elif not others.is_empty() and randf() < 0.4:
-				_say(g, "I-I don't like the way %s keeps looking at the coffin." % others.pick_random().nick)
+				_say(g, (NERVOUS.pick_random() as String).replace("%s", others.pick_random().nick))
 		"fiddler":
 			_say(g, "(plays a slow air on the fiddle)")
 		"drunk":

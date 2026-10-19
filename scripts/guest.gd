@@ -1,6 +1,6 @@
 extends Interactable
 
-enum S { DOOR, WALK, SEATED, ASLEEP, LEAVE, STALK }
+enum S { DOOR, WALK, SEATED, ASLEEP, LEAVE, STALK, APPROACH, WANDER, HOLD, RETURN }
 
 const BOOT_CLEAN := preload("res://assets/materials/boot_clean.tres")
 const BOOT_MUD := preload("res://assets/materials/boot_mud.tres")
@@ -38,6 +38,14 @@ var seen := false
 var steps: AudioStreamPlayer3D
 var chase: AudioStreamPlayer3D
 var drips: CPUParticles3D
+var rig: Node3D
+var anim_t := 0.0
+var walk_ph := 0.0
+var shiver_t := 0.0
+var snap_t := 0.0
+var snap_yaw := 0.0
+var hold_left := 0.0
+var home: Node3D
 
 
 func _ready() -> void:
@@ -62,7 +70,7 @@ func _loop_player(s: AudioStream, db: float, unit: float) -> AudioStreamPlayer3D
 
 ## Footsteps while walking; slow and heavy for a double creeping to the coffin.
 func _update_sounds() -> void:
-	var moving := (state == S.WALK or state == S.LEAVE or state == S.STALK) and not path.is_empty()
+	var moving := _walking() and not path.is_empty()
 	if state == S.STALK and seen:
 		moving = false   # frozen while watched
 	if moving and not steps.playing:
@@ -125,6 +133,68 @@ func build_model(model: String, mutation: Dictionary = {}) -> void:
 	add_part(legs, parts.get("legs"), mat)
 	add_part(knee, parts.get("knee"), mat)
 	add_part(head, parts.get("head"), mat)
+	_make_rig()
+
+
+func _make_rig() -> void:
+	rig = Node3D.new()
+	rig.name = "Rig"
+	add_child(rig)
+	var move: Array = [legs, head]
+	for c in get_children():
+		if c is MeshInstance3D:
+			move.append(c)
+	for n in move:
+		n.reparent(rig, false)
+	anim_t = randf() * 10.0
+	shiver_t = randf_range(3.0, 8.0)
+	snap_t = randf_range(6.0, 12.0)
+
+
+func _walking() -> bool:
+	return state in [S.WALK, S.LEAVE, S.STALK, S.APPROACH, S.WANDER, S.RETURN]
+
+
+func _animate(dt: float) -> void:
+	if rig == null:
+		return
+	anim_t += dt
+	var moving := _walking() and not path.is_empty() and not (state == S.STALK and seen)
+	var pos := Vector3.ZERO
+	var rot := Vector3.ZERO
+	var lg := legs.rotation.x if state in [S.SEATED, S.ASLEEP] else 0.0
+	var kn := knee.rotation.x if state in [S.SEATED, S.ASLEEP] else 0.0
+	if moving:
+		walk_ph += dt * speed * 6.0
+		var a := clampf(speed / 1.1, 0.6, 2.4)
+		pos.y = absf(sin(walk_ph)) * 0.03 * a
+		rot.z = sin(walk_ph) * 0.035
+		rot.x = -0.05 * a
+		if state == S.STALK:
+			rot.x = -0.3
+			rot.z = sin(walk_ph * 0.5) * 0.08
+		lg = sin(walk_ph * 2.0) * 0.06 * a
+		kn = -absf(sin(walk_ph)) * 0.18 * a
+	elif state == S.SEATED or state == S.ASLEEP:
+		if not double:
+			var br := 1.2 if state == S.ASLEEP else 1.7
+			pos.y = sin(anim_t * br) * 0.006
+			rot.x = (0.16 if state == S.ASLEEP else 0.0) + sin(anim_t * 0.31) * 0.035
+			rot.z = sin(anim_t * 0.23) * 0.02
+	elif state == S.DOOR or state == S.HOLD:
+		if not double:
+			rot.z = sin(anim_t * 0.8) * 0.025
+			pos.y = sin(anim_t * 1.6) * 0.004
+			shiver_t -= dt
+			if shiver_t < 0.0:
+				rot += Vector3(randf_range(-1, 1), 0, randf_range(-1, 1)) * 0.012
+				if shiver_t < -0.6:
+					shiver_t = randf_range(3.0, 8.0)
+	rig.position = rig.position.lerp(pos, minf(dt * 12.0, 1.0))
+	rig.rotation = rig.rotation.lerp(rot, minf(dt * 8.0, 1.0))
+	if moving:
+		legs.rotation.x = lg
+		knee.rotation.x = kn
 
 
 func add_part(parent: Node3D, mesh: Mesh, mat: Material) -> void:
@@ -189,8 +259,12 @@ func _process(dt: float) -> void:
 	if drips and drips.emitting and age > WET_FOR:
 		drips.emitting = false
 	match state:
-		S.WALK, S.LEAVE:
+		S.WALK, S.LEAVE, S.APPROACH, S.WANDER, S.RETURN:
 			step(dt)
+		S.HOLD:
+			hold_left -= dt
+			if hold_left <= 0.0:
+				_go_home()
 		S.STALK:
 			if not seen:   # it only moves while nobody is watching
 				step(dt)
@@ -207,12 +281,23 @@ func _process(dt: float) -> void:
 	var tp := 0.0
 	if state == S.ASLEEP:
 		tp = -0.65
-	elif state == S.SEATED or state == S.DOOR or (state == S.STALK and seen):
+	elif state == S.SEATED or state == S.DOOR or state == S.HOLD or (state == S.STALK and seen):
 		ty = yaw_to_player()
-	yaw = lerp_angle(yaw, ty, dt * 3.0)
+	var turn := 3.0
+	if double and (state == S.SEATED or state == S.DOOR):
+		snap_t -= dt
+		if snap_t <= 0.0:
+			snap_t = randf_range(7.0, 14.0)
+			snap_yaw = 1.0
+		if snap_yaw > 0.0:
+			snap_yaw -= dt * 0.5
+			ty = _yaw_raw()
+			turn = 18.0
+	yaw = lerp_angle(yaw, ty, minf(dt * turn, 1.0))
 	pitch = lerpf(pitch, tp, dt * 2.0)
 	head.rotation = Vector3(pitch, yaw, 0)
 	breathe(dt)
+	_animate(dt)
 	_update_sounds()
 
 
@@ -252,11 +337,15 @@ func sabotage() -> void:
 
 
 func yaw_to_player() -> float:
+	return clampf(_yaw_raw(), -1.2, 1.2)
+
+
+func _yaw_raw() -> float:
 	var p := get_tree().get_first_node_in_group("player") as Node3D
 	if not p:
 		return 0.0
 	var l := to_local(p.global_position)
-	return clampf(atan2(-l.x, -l.z), -1.2, 1.2)
+	return atan2(-l.x, -l.z)
 
 
 func breathe(dt: float) -> void:
@@ -292,6 +381,14 @@ func arrive() -> void:
 			sit()
 		S.LEAVE:
 			queue_free()
+		S.APPROACH:
+			state = S.DOOR
+			rotation.y = float(get_meta("final_yaw", rotation.y))
+			get_tree().call_group("visitors", "on_at_spot", self)
+		S.WANDER:
+			state = S.HOLD
+		S.RETURN:
+			sit()
 		S.STALK:
 			state = S.DOOR
 			get_tree().call_group("visitors", "double_reached", self)
@@ -345,6 +442,36 @@ func stalk() -> void:
 	get_tree().call_group("roles", "on_stalk", self)
 
 
+func approach(pts: Array, final_yaw: float) -> void:
+	path = pts.duplicate()
+	state = S.APPROACH
+	speed = Config.approach_speed
+	set_meta("final_yaw", final_yaw)
+	stand()
+
+
+## A harmless scare: get up, walk fast at something, stand there, go back.
+func rush_to(p: Vector3, hold_for: float) -> bool:
+	if state != S.SEATED or double or seat == null:
+		return false
+	home = seat
+	path = [Vector3(p.x, 0.0, p.z)]
+	state = S.WANDER
+	speed = Config.rush_speed
+	hold_left = hold_for
+	stand()
+	return true
+
+
+func _go_home() -> void:
+	if home == null:
+		state = S.SEATED
+		return
+	path = [Vector3(home.global_position.x, 0.0, home.global_position.z)]
+	state = S.RETURN
+	speed = Config.guest_speed
+
+
 func can_sleep() -> bool:
 	return state == S.SEATED and not double
 
@@ -360,7 +487,7 @@ func wake() -> void:
 
 
 func is_awake() -> bool:
-	return state == S.SEATED or state == S.STALK
+	return state in [S.SEATED, S.STALK, S.WANDER, S.HOLD, S.RETURN]
 
 
 func is_stalking() -> bool:

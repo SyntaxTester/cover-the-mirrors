@@ -29,6 +29,14 @@ const RISER := preload("res://assets/sounds/universfield-suspense-riser-191979.m
 const VIOLIN_RISE := preload("res://assets/sounds/Increasing_spooky_violin_sound.mp3")
 const VIOLIN_STING := preload("res://assets/sounds/Sudden_spooky_violin_sound.mp3")
 const VIOLINS := preload("res://assets/sounds/Scary_violins.mp3")
+const HEART := preload("res://assets/sounds/A_bit_rapid_heartbeat.mp3")
+const THUNDER := [
+	preload("res://assets/sounds/thunder_1.wav"),
+	preload("res://assets/sounds/thunder_2.wav"),
+	preload("res://assets/sounds/thunder_3.wav"),
+]
+const SKITTER := preload("res://assets/sounds/skitter.wav")
+const SCREAM := preload("res://assets/sounds/scream.wav")
 
 
 ## One stream from a list of variants (or the stream itself).

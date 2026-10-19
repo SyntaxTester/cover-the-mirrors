@@ -33,7 +33,7 @@ func _gap() -> float:
 
 
 func _calm() -> bool:
-	if Game.state != Game.State.PLAY or visitors.at_door != null or omens.danger:
+	if Game.state != Game.State.PLAY or omens.danger:
 		return false
 	for g in visitors.inside:
 		if is_instance_valid(g) and g.is_stalking():
@@ -54,7 +54,7 @@ func _process(dt: float) -> void:
 	if next_t > 0.0:
 		return
 	next_t = _gap()
-	var events := ["window", "steps", "mourner", "candles", "portrait", "clock", "dog", "draft"]
+	var events := ["window", "steps", "mourner", "candles", "portrait", "clock", "dog", "draft", "rush", "rush", "lights", "scream", "corpse"]
 	events.erase(last)
 	events.shuffle()
 	for e in events:
@@ -214,6 +214,67 @@ func _ev_draft() -> bool:
 	if ms.is_empty():
 		return false
 	ms.pick_random().slip()
+	return true
+
+
+## A real neighbour gets up and walks straight at you, stares, and goes back.
+func _ev_rush() -> bool:
+	var p := _player()
+	if p == null or p.global_position.x > 14.0:
+		return false
+	var c: Array = visitors.inside.filter(func(g): return is_instance_valid(g) and not g.double and g.is_seated())
+	if c.is_empty():
+		return false
+	c.shuffle()
+	for g in c:
+		var gp: Vector3 = g.global_position
+		var to := Vector3(gp.x - p.global_position.x, 0, gp.z - p.global_position.z)
+		if to.length() < 2.5 or to.length() > 9.0:
+			continue
+		var tgt: Vector3 = p.global_position + to.normalized() * 1.1
+		if g.rush_to(tgt, randf_range(1.8, 3.0)):
+			Sounds.play(self, Sounds.VIOLIN_STING, -6.0)
+			return true
+	return false
+
+
+func _ev_lights() -> bool:
+	var ls: Array = []
+	for n in ["Hall/HangingLamp/Light", "Hall/DoorLamp/Light", "Hall/DoorLamp2/Light", "Hall/DoorLamp3/Light", "Hall/DresserLamp/Light", "Bedroom/IconLamp/Light", "Hall/Fire/Light"]:
+		var l := level.get_node_or_null(n) as Light3D
+		if l:
+			ls.append(l)
+	if ls.is_empty():
+		return false
+	for l in ls:
+		var e: float = l.light_energy
+		var tw := create_tween()
+		for i in 5:
+			tw.tween_property(l, "light_energy", e * randf_range(0.0, 0.25), 0.06)
+			tw.tween_property(l, "light_energy", e * randf_range(0.5, 1.0), 0.08)
+		tw.tween_property(l, "light_energy", 0.0, 0.1)
+		tw.tween_interval(0.9)
+		tw.tween_property(l, "light_energy", e, 0.4)
+	Sounds.play(self, Sounds.VIOLIN_RISE, -12.0)
+	return true
+
+
+func _ev_scream() -> bool:
+	var far := Vector3(randf_range(26.0, 40.0), 2.0, randf_range(-10.0, 25.0))
+	Sounds.play_at(self, far, Sounds.SCREAM, -6.0, "Ambience", 0.55, 0.05, 14.0)
+	return true
+
+
+func _ev_corpse() -> bool:
+	var corpse := level.get_node_or_null("CoffinRoom/Corpse") as Node3D
+	if corpse == null or not Sight.sees(self, corpse.global_position + Vector3(0, 0.3, 0), 9.0, 0.6):
+		return false
+	var y0: float = corpse.get("head_yaw")
+	var tw := create_tween()
+	tw.tween_property(corpse, "head_yaw", y0 + 0.9, 0.12)
+	tw.tween_interval(0.5)
+	tw.tween_property(corpse, "head_yaw", y0, 1.2)
+	Sounds.play(self, Sounds.VIOLIN_STING, -10.0)
 	return true
 
 

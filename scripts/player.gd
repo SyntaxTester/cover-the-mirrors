@@ -29,10 +29,6 @@ func _unhandled_input(e: InputEvent) -> void:
 	if e is InputEventMouseMotion and Input.mouse_mode == Input.MOUSE_MODE_CAPTURED:
 		rotate_y(-e.relative.x * Config.mouse_sens)
 		head.rotation.x = clampf(head.rotation.x - e.relative.y * Config.mouse_sens, -1.4, 1.4)
-	elif e.is_action_pressed("pause"):
-		if Input.mouse_mode == Input.MOUSE_MODE_CAPTURED:
-			Sounds.play(self, Sounds.UI_CLOSE, -8.0)
-		Input.mouse_mode = Input.MOUSE_MODE_VISIBLE
 	elif e is InputEventMouseButton and e.pressed and Game.state == Game.State.PLAY:
 		if Input.mouse_mode != Input.MOUSE_MODE_CAPTURED:
 			Sounds.play(self, Sounds.UI_OPEN, -8.0)
@@ -40,7 +36,7 @@ func _unhandled_input(e: InputEvent) -> void:
 
 
 func _physics_process(dt: float) -> void:
-	var live := Game.state == Game.State.PLAY
+	var live := Game.state == Game.State.PLAY or Game.state == Game.State.ATTACK
 	var inp := Vector2.ZERO
 	if live:
 		inp = Input.get_vector("move_left", "move_right", "move_forward", "move_back")
@@ -69,7 +65,7 @@ func _physics_process(dt: float) -> void:
 	bob += dt * sp * Config.bob_freq
 	cam.position.y = cam_y + sin(bob) * Config.bob_amount * minf(sp / speed, 1.0)
 
-	scan(live)
+	scan(Game.state == Game.State.PLAY)
 	var z := target != null and target.wants_zoom()
 	cam.fov = lerpf(cam.fov, Config.zoom_fov if z else 70.0, dt * 6.0)
 

@@ -14,6 +14,7 @@ extends Node3D
 @export var uv_scale := 0.08
 @export var yard := Rect2(-2.0, -3.0, 23.0, 16.0)
 @export var flat_models: Array[String] = ["church", "shrek-house", "houses"]
+@export var lanes: Array[Rect2] = [Rect2(19.5, 11.6, 26.0, 2.8)]
 
 var noise := FastNoiseLite.new()
 var zones: Array[Rect2] = []
@@ -27,6 +28,8 @@ func _ready() -> void:
 	noise.fractal_octaves = 4
 	var lv := get_parent()
 	zones.append(yard)
+	for r in lanes:
+		zones.append(r)
 	for n in flat_models:
 		var m := lv.get_node_or_null(n)
 		if m == null:
@@ -35,6 +38,16 @@ func _ready() -> void:
 			var a: AABB = mi.global_transform * mi.get_aabb()
 			zones.append(Rect2(a.position.x, a.position.z, a.size.x, a.size.z))
 	var mat: Material = null
+	var path := lv.get_node_or_null("Outside/Ground/Path") as CSGBox3D
+	if path and path.material:
+		for r in lanes:
+			var lm := MeshInstance3D.new()
+			var bm := BoxMesh.new()
+			bm.size = Vector3(r.size.x, 0.02, r.size.y * 0.6)
+			lm.mesh = bm
+			lm.material_override = path.material
+			add_child(lm)
+			lm.global_position = Vector3(r.position.x + r.size.x * 0.5, base + 0.012, r.position.y + r.size.y * 0.5)
 	var mud := lv.get_node_or_null("Outside/Ground/Mud") as CSGBox3D
 	if mud:
 		mat = mud.material

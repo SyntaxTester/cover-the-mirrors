@@ -6,7 +6,7 @@ signal night_won(n: int)
 signal bell
 signal corpse_stirred(stage: int)
 
-enum State { PLAY, LOST, WON }
+enum State { PLAY, LOST, WON, ATTACK }
 
 var state := State.PLAY
 var night := 0
@@ -78,10 +78,26 @@ func clock() -> String:
 
 
 func lose(reason: String) -> void:
-	if state != State.PLAY:
+	if state != State.PLAY and state != State.ATTACK:
 		return
 	state = State.LOST
 	night_lost.emit(reason)
+
+
+func begin_attack() -> void:
+	if state == State.PLAY:
+		state = State.ATTACK
+
+
+func start_from_menu(n: int) -> void:
+	reset_run()
+	night = clampi(n, 0, Config.nights.size() - 1)
+	get_tree().change_scene_to_file("res://scenes/main.tscn")
+
+
+func to_menu() -> void:
+	get_tree().paused = false
+	get_tree().change_scene_to_file("res://scenes/menu.tscn")
 
 
 func is_last() -> bool:

@@ -7,7 +7,20 @@ signal visitor_spoke(g)
 const GUEST := preload("res://scenes/guest.tscn")
 const IN_PT := Vector3(13.2, 0, 2.6)
 const OUT_PT := Vector3(15.4, 0, 2.6)
-const AWAY := [Vector3(17.0, 0, 4.2), Vector3(19.5, 0, 7.0)]
+const LANE_FAR := Vector3(36.0, 0, 13.0)
+const LANE_GATE := Vector3(21.6, 0, 13.0)
+const YARD := Vector3(17.6, 0, 8.2)
+const FIELD := [Vector3(19.4, 0, -2.2), Vector3(17.2, 0, 0.6)]
+const AWAY := [Vector3(17.6, 0, 8.2), Vector3(21.6, 0, 13.0), Vector3(36.0, 0, 13.0)]
+const DEATHS := [
+	"%s was found by the bog road at first light.",
+	"They pulled %s out of the bog water at dawn, a lantern still in hand.",
+	"%s never made it home. A shawl was left caught on the hawthorn by the road.",
+	"At first light %s lay face down in the ditch at the crossroads.",
+	"%s was found sitting against the chapel wall, cold as stone, eyes open.",
+	"Only %s's boots were found, side by side at the edge of the bog.",
+	"The carter found %s on the road at dawn. Nobody would say how they looked.",
+]
 const STALK := [Vector3(7.4, 0, 4.4), Vector3(5.4, 0, 4.4), Vector3(4.05, 0, 3.55)]
 
 var level: Node3D
@@ -27,6 +40,7 @@ var looks: Dictionary = {}
 var times: Array = []
 var idx := 0
 var at_door
+var approaching
 var door_t := 0.0
 var knock_t := 0.0
 var spoken := false
@@ -88,7 +102,7 @@ func next_sleep() -> float:
 func _process(dt: float) -> void:
 	if Game.state != Game.State.PLAY:
 		return
-	if at_door == null and idx < times.size() and Game.t >= times[idx]:
+	if at_door == null and approaching == null and idx < times.size() and Game.t >= times[idx]:
 		arrive(queue[idx])
 		idx += 1
 	if at_door != null:
@@ -126,21 +140,43 @@ func _lamp(dt: float) -> void:
 func arrive(e: Dictionary) -> void:
 	var g = GUEST.instantiate()
 	holder.add_child(g)
+	g.setup(e, looks.get(e.get("name", ""), {}))
+	var from_field: bool = g.double and rng.randf() < Config.double_field_chance
+	var pts: Array = FIELD.duplicate() if from_field else [LANE_GATE, YARD]
+	pts.append(Vector3(spot.global_position.x, 0.0, spot.global_position.z))
+	g.global_position = pts[0] if from_field else LANE_FAR
+	g.approach(pts, spot.global_rotation.y)
+	approaching = g
+
+
+func arrive_now(e: Dictionary) -> void:
+	var g = GUEST.instantiate()
+	holder.add_child(g)
 	g.global_transform = spot.global_transform
 	g.setup(e, looks.get(e.get("name", ""), {}))
+	on_at_spot(g)
+
+
+func on_at_spot(g) -> void:
+	if approaching == g:
+		approaching = null
 	at_door = g
 	door_t = 0.0
-	knock_t = 0.3
+	knock_t = 0.2
 	spoken = false
 	if g.sign_on("dog_growl"):
 		dog.alert(true)
 	visitor_arrived.emit(g)
 	get_tree().call_group("roles", "on_visitor_arrived", g)
+	if hatch.open:
+		hatch_changed(true)
 
 
 func hatch_changed(o: bool) -> void:
 	if at_door == null:
 		return
+	if o:
+		door.stop_knock()
 	if o and not spoken:
 		spoken = true
 		at_door.say()
@@ -160,8 +196,9 @@ func let_in() -> void:
 	var g = at_door
 	at_door = null
 	dog.alert(false)
+	door.stop_knock()
 	hatch.set_open(false)
-	door.swing_open(3.5)
+	door.pass_through(g, -1.0)
 	var s := free_seat()
 	taken[s] = g
 	g.walk_in(s, [IN_PT])
@@ -176,6 +213,7 @@ func turn_away() -> void:
 	var g = at_door
 	at_door = null
 	dog.alert(false)
+	door.stop_knock()
 	if not g.double:
 		# a real neighbour left out in the rain on a night like this...
 		Game.run.humans_refused += 1
@@ -195,7 +233,7 @@ func expel(g) -> void:
 	else:
 		Game.run.doubles_expelled += 1
 		Sounds.play(self, Sounds.VIOLINS, -8.0)   # you were right: it was one of them
-	door.swing_open(6.0)
+	door.pass_through(g, 1.0)
 	if randf() < Config.expel_draft_chance:
 		_draft()
 	g.leave([IN_PT, OUT_PT] + AWAY)
@@ -219,9 +257,12 @@ func _blow_out(c) -> void:
 func double_reached(g) -> void:
 	inside.erase(g)
 	taken.erase(g.seat)
+	update_board()
+	if get_tree().get_first_node_in_group("attack"):
+		get_tree().call_group("attack", "begin", g)
+		return
 	Sounds.play(self, Sounds.JUMPSCARE, -4.0)
 	g.queue_free()
-	update_board()
 	Game.corpse_stir()
 
 
@@ -252,8 +293,12 @@ func update_board() -> void:
 ## Dawn: who is missing, and who sat with us that shouldn't have.
 func _morning(_n: int) -> void:
 	report.clear()
+	var lines: Array = DEATHS.duplicate()
+	lines.shuffle()
+	var i := 0
 	for n in Game.run.refused_last:
-		report.append("%s was found by the bog road at first light." % n)
+		report.append(lines[i % lines.size()] % n)
+		i += 1
 		if not Game.run.lost.has(n):
 			Game.run.lost.append(n)
 	var left := inside.filter(func(g): return is_instance_valid(g) and g.double)

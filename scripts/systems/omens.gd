@@ -14,6 +14,8 @@ func _ready() -> void:
 
 
 func lost(reason: String) -> void:
+	if reason == "double":
+		return
 	Sounds.play(self, Sounds.JUMPSCARE, 0.0)
 	if reason == "candles":
 		level.get_node("Outside/Face").visible = true
