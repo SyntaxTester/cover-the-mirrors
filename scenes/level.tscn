@@ -1,4 +1,4 @@
-[gd_scene load_steps=134 format=3 uid="uid://dlbdh5g7pmd2l"]
+[gd_scene load_steps=136 format=3 uid="uid://dlbdh5g7pmd2l"]
 
 [ext_resource type="Material" path="res://assets/materials/wall.tres" id="1_2jdvr"]
 [ext_resource type="Material" path="res://assets/materials/floor.tres" id="2_q4oe8"]
@@ -48,8 +48,8 @@
 [ext_resource type="PackedScene" uid="uid://60v14oveddsb" path="res://scenes/models/tree_pack_1.1/models/tree_03.tscn" id="43_uhfbm"]
 [ext_resource type="PackedScene" uid="uid://cgvt2j47nnvk1" path="res://scenes/models/tree_pack_1.1/models/tree_04.tscn" id="44_lqb7q"]
 [ext_resource type="PackedScene" uid="uid://gcuhbjoykjw0" path="res://scenes/models/tree_pack_1.1/models/tree_05.tscn" id="45_ok3ci"]
-[ext_resource type="Script" path="res://scripts/terrain.gd" id="90_terrain"]
-[ext_resource type="Script" path="res://scripts/flat_roofs.gd" id="91_roofs"]
+[ext_resource type="Script" uid="uid://dben6feu6fywa" path="res://scripts/terrain.gd" id="90_terrain"]
+[ext_resource type="Script" uid="uid://60ox1lsjay34" path="res://scripts/flat_roofs.gd" id="91_roofs"]
 
 [sub_resource type="Environment" id="Environment_vry8j"]
 background_mode = 1
@@ -417,7 +417,7 @@ size = Vector3(0.03, 0.06, 0.07)
 environment = SubResource("Environment_vry8j")
 
 [node name="InvWallBlock" type="CSGBox3D" parent="Env"]
-transform = Transform3D(3.853237, 0, 0, 0, 1, 0, 0, 0, 1, 14.521357, 1.0758362, 2.6015832)
+transform = Transform3D(3.853237, 0, 0, 0, 1, 0, 0, 0, 1, 14.408146, 1.0758362, 2.6015832)
 visible = false
 use_collision = true
 size = Vector3(0.16601563, 2.2289429, 1.0610352)
@@ -1389,6 +1389,60 @@ light_energy = 0.8
 omni_range = 2.69
 omni_attenuation = 0.59
 
+[node name="DoorLamp2" type="Node3D" parent="Hall"]
+transform = Transform3D(-4.371139e-08, 0, -1, 0, 1, 0, 1, 0, -4.371139e-08, 10.645792, 1.676733, 9.828612)
+
+[node name="Glass" type="MeshInstance3D" parent="Hall/DoorLamp2"]
+material_override = ExtResource("25_oksur")
+cast_shadow = 0
+mesh = SubResource("BoxMesh_0g86u")
+
+[node name="Cap" type="MeshInstance3D" parent="Hall/DoorLamp2"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.085, 0)
+material_override = ExtResource("26_jide8")
+cast_shadow = 0
+mesh = SubResource("BoxMesh_y2y7i")
+
+[node name="Bracket" type="MeshInstance3D" parent="Hall/DoorLamp2"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.09, -0.08, 0)
+material_override = ExtResource("26_jide8")
+cast_shadow = 0
+mesh = SubResource("BoxMesh_iri6o")
+
+[node name="Light" type="OmniLight3D" parent="Hall/DoorLamp2"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, -0.12, 0)
+light_color = Color(1, 0.68, 0.38, 1)
+light_energy = 0.8
+omni_range = 2.69
+omni_attenuation = 0.59
+
+[node name="DoorLamp3" type="Node3D" parent="Hall"]
+transform = Transform3D(-4.371139e-08, 0, 1, 0, 1, 0, -1, 0, -4.371139e-08, 9.578288, 1.676733, 0.16849935)
+
+[node name="Glass" type="MeshInstance3D" parent="Hall/DoorLamp3"]
+material_override = ExtResource("25_oksur")
+cast_shadow = 0
+mesh = SubResource("BoxMesh_0g86u")
+
+[node name="Cap" type="MeshInstance3D" parent="Hall/DoorLamp3"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.085, 0)
+material_override = ExtResource("26_jide8")
+cast_shadow = 0
+mesh = SubResource("BoxMesh_y2y7i")
+
+[node name="Bracket" type="MeshInstance3D" parent="Hall/DoorLamp3"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.09, -0.08, 0)
+material_override = ExtResource("26_jide8")
+cast_shadow = 0
+mesh = SubResource("BoxMesh_iri6o")
+
+[node name="Light" type="OmniLight3D" parent="Hall/DoorLamp3"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, -0.12, 0)
+light_color = Color(1, 0.68, 0.38, 1)
+light_energy = 0.8
+omni_range = 2.69
+omni_attenuation = 0.59
+
 [node name="DresserLamp" type="Node3D" parent="Hall"]
 transform = Transform3D(0.5890271, 0, 0.8081133, 0, 1, 0, -0.8081133, 0, 0.5890271, 31.775644, 1.6159736, 18.471745)
 
@@ -1864,7 +1918,7 @@ draw_pass_1 = SubResource("BoxMesh_g3e2o")
 [node name="RainSound" type="AudioStreamPlayer3D" parent="Outside"]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 16, 1.5, 4)
 stream = ExtResource("34_svjb4")
-volume_db = -19.485
+volume_db = 0.709
 unit_size = 3.0
 autoplay = true
 bus = &"Ambience"
@@ -1942,7 +1996,7 @@ transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 13.013674, 0.46, 9.7)
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 9.984285, 0.46, 9.7)
 
 [node name="Seat9" type="Marker3D" parent="Markers/Seats" groups=["seats"]]
-transform = Transform3D(0.7466599, 0, 0.665206, 0, 1, 0, -0.665206, 0, 0.7466599, 9, 0.45, 4.75)
+transform = Transform3D(0.7466599, 0, 0.665206, 0, 1, 0, -0.665206, 0, 0.7466599, 8.18102, 0.45250446, 3.7082999)
 
 [node name="Seat10" type="Marker3D" parent="Markers/Seats" groups=["seats"]]
 transform = Transform3D(0.2530277, 0, 0.967459, 0, 1, 0, -0.967459, 0, 0.2530277, 9.8, 0.45, 2.85)
