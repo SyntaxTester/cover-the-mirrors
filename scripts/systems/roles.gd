@@ -9,7 +9,7 @@ extends Node
 ##   nervous     Daniel: jumpy about someone (sometimes right)
 ##   pious       Joseph: shouts when a mirror cloth slips
 ##   carpenter   John: raises the alarm when someone heads for the coffin
-##   singer      Sultan, James: a song wakes the sleepers; Sultan also talks nonsense
+##   singer      Esmagzam, James: a song wakes the sleepers; Esmagzam also talks nonsense
 ##   candles     Nora: relights a candle now and then
 ##   fiddler     Martin, drunk Denis: keep the wake lively (vigil)
 ##   drunk, sleepy  Denis, Paddy: nod off first
@@ -179,7 +179,7 @@ func on_visitor_spoke(v) -> void:
 		_later(5.0, func(): _say(p, text, true))
 		return
 	for s in _inside_awake("singer"):
-		if s.nick == "Sultan" and randf() < 0.5:
+		if s.nick == "Esmagzam" and randf() < 0.5:
 			_later(5.0, func(): _say(s, ["Let them in! The more the merrier!",
 				"Is that the priest? Tell him I've been good!",
 				"Ask them if they brought ale!"].pick_random()))
@@ -235,7 +235,7 @@ func _idle(g) -> void:
 					x.wake()
 					woke += 1
 			vigil.vigil = minf(vigil.vigil + 6.0, 100.0)
-			_say(g, "(sings) Oh the night was dark and the road was long..." if g.nick == "Sultan" \
+			_say(g, "(sings) Oh the night was dark and the road was long..." if g.nick == "Esmagzam" \
 				else "(sings) And we'll all go together to the wake of old Patrick...")
 		"candles":
 			var out := get_tree().get_nodes_in_group("coffin_candles").filter(func(c): return not c.lit)

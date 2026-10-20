@@ -56,7 +56,10 @@ func strike() -> void:
 	_glimpse()
 	var delay := lerpf(0.15, 2.8, near)
 	get_tree().create_timer(delay).timeout.connect(func():
-		Sounds.play(self, Sounds.THUNDER, lerpf(2.0, -9.0, near), "Ambience", 0.06))
+		if near < 0.55:
+			Sounds.play(self, Sounds.THUNDER_NEAR, lerpf(6.0, 1.0, near / 0.55), "Ambience", 0.05)
+		else:
+			Sounds.play(self, Sounds.THUNDER, lerpf(3.0, -3.0, near), "Ambience", 0.06))
 
 
 func _glimpse() -> void:

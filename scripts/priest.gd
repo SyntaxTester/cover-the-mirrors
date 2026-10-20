@@ -15,8 +15,7 @@ const PRAYERS := [
 	"When did you last look in a glass, son? No. Don't.",
 ]
 
-var legs := Node3D.new()
-var knee := Node3D.new()
+var body: VillagerBody
 var head := Node3D.new()
 var hip_y := 0.85
 var pray_t := 30.0
@@ -28,27 +27,15 @@ var yaw := 0.0
 func setup(seat: Transform3D) -> void:
 	var id := PS1Villager.character_from_name(MODEL)
 	var parts := PS1Villager.build_guest_parts(id, {"boots": "mud"})
-	var piv: Dictionary = parts["pivots"]
-	hip_y = (piv["legs"] as Vector3).y
-	add_child(legs)
-	legs.add_child(knee)
-	add_child(head)
-	legs.position = piv["legs"]
-	knee.position = (piv["knee"] as Vector3) - (piv["legs"] as Vector3)
-	head.position = piv["head"]
-	var mat: Material = parts["material"]
-	for pair in [[self, "body"], [legs, "legs"], [knee, "knee"], [head, "head"]]:
-		var m: Mesh = parts.get(pair[1])
-		if m:
-			var mi := MeshInstance3D.new()
-			mi.mesh = m
-			mi.material_override = mat
-			(pair[0] as Node3D).add_child(mi)
+	body = VillagerBody.new()
+	add_child(body)
+	body.build(parts, head)
+	body.mode = "sit"
+	body.set_seated(true, true)
+	hip_y = body.hip.y
 	# seated, facing the coffin
 	global_transform = seat
 	global_position.y = seat.origin.y - (hip_y - 0.05)
-	legs.rotation.x = PI / 2
-	knee.rotation.x = -PI / 2
 	add_to_group("priest")
 	Game.corpse_stirred.connect(_stirred)
 
@@ -56,6 +43,7 @@ func setup(seat: Transform3D) -> void:
 func _say(text: String) -> void:
 	if Game.state == Game.State.PLAY:
 		get_tree().call_group("hud", "say", "Father Declan", text)
+		body.talk(2.0 + text.length() / 30.0)
 
 
 func _player_near(d := 6.0) -> bool:

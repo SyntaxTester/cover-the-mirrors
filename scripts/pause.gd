@@ -1,6 +1,8 @@
 extends CanvasLayer
 
 var box: Control
+var items: VBoxContainer
+var settings: SettingsPanel
 
 
 func _ready() -> void:
@@ -21,27 +23,48 @@ func _ready() -> void:
 	col.add_theme_constant_override("separation", 4)
 	box.add_child(col)
 	col.add_child(UiKit.label("The wake waits.", 14))
-	for item in [["Return to the wake", _resume], ["Main menu", func(): Game.to_menu()], ["Leave", func(): get_tree().quit()]]:
+	items = VBoxContainer.new()
+	items.add_theme_constant_override("separation", 4)
+	col.add_child(items)
+	for item in [["Return to the wake", _resume], ["Settings", func(): _settings(true)],
+			["Main menu", func(): Game.to_menu()], ["Leave", func(): get_tree().quit()]]:
 		var b := UiKit.button(item[0])
 		var f: Callable = item[1]
 		b.pressed.connect(func():
 			Sounds.play(Game, Sounds.UI_SELECT, -6.0)
 			f.call())
-		col.add_child(b)
+		items.add_child(b)
+	settings = SettingsPanel.new()
+	settings.visible = false
+	settings.back.connect(func(): _settings(false))
+	col.add_child(settings)
+
+
+func _settings(on: bool) -> void:
+	items.visible = not on
+	settings.visible = on
+	if on:
+		settings.focus()
+	else:
+		(items.get_child(0) as Button).grab_focus()
 
 
 func _unhandled_input(e: InputEvent) -> void:
 	if not e.is_action_pressed("pause"):
 		return
 	if box.visible:
-		_resume()
-	elif Game.state == Game.State.PLAY:
+		if settings.visible:
+			_settings(false)
+		else:
+			_resume()
+	elif Game.state != Game.State.ATTACK:   # also on the morning / game-over screens
 		_open()
 	get_viewport().set_input_as_handled()
 
 
 func _open() -> void:
 	box.visible = true
+	_settings(false)
 	get_tree().paused = true
 	Input.mouse_mode = Input.MOUSE_MODE_VISIBLE
 	Sounds.play(self, Sounds.UI_OPEN, -8.0)
@@ -53,5 +76,6 @@ func _open() -> void:
 func _resume() -> void:
 	box.visible = false
 	get_tree().paused = false
-	Input.mouse_mode = Input.MOUSE_MODE_CAPTURED
+	if Game.state == Game.State.PLAY:
+		Input.mouse_mode = Input.MOUSE_MODE_CAPTURED
 	Sounds.play(self, Sounds.UI_CLOSE, -8.0)

@@ -3,7 +3,7 @@ extends Control
 const BG := preload("res://assets/ui/menu_bg.jpg")
 
 var main_box: VBoxContainer
-var settings_box: VBoxContainer
+var settings_box: SettingsPanel
 var music: AudioStreamPlayer
 var flick := 0.0
 var bg: TextureRect
@@ -52,24 +52,10 @@ func _ready() -> void:
 	_add(main_box, "Night three", func(): _start(2))
 	_add(main_box, "Settings", func(): _show_settings(true))
 	_add(main_box, "Leave", func(): get_tree().quit())
-	settings_box = VBoxContainer.new()
+	settings_box = SettingsPanel.new()
 	settings_box.visible = false
-	settings_box.add_theme_constant_override("separation", 4)
+	settings_box.back.connect(func(): _show_settings(false))
 	col.add_child(settings_box)
-	var l1 := UiKit.label("Mouse sensitivity", 9, UiKit.DIM)
-	l1.horizontal_alignment = HORIZONTAL_ALIGNMENT_LEFT
-	settings_box.add_child(l1)
-	var s1 := UiKit.slider(0.0005, 0.006, Config.mouse_sens)
-	s1.value_changed.connect(func(v): Config.mouse_sens = v)
-	settings_box.add_child(s1)
-	var l2 := UiKit.label("Volume", 9, UiKit.DIM)
-	l2.horizontal_alignment = HORIZONTAL_ALIGNMENT_LEFT
-	settings_box.add_child(l2)
-	var bus := AudioServer.get_bus_index("Master")
-	var s2 := UiKit.slider(0.0, 1.0, db_to_linear(AudioServer.get_bus_volume_db(bus)))
-	s2.value_changed.connect(func(v): AudioServer.set_bus_volume_db(bus, linear_to_db(maxf(v, 0.001))))
-	settings_box.add_child(s2)
-	_add(settings_box, "Back", func(): _show_settings(false))
 	var hint := UiKit.label("Keep the candles lit. Cover the glass. Count your guests.", 8, UiKit.DIM)
 	hint.set_anchors_preset(Control.PRESET_BOTTOM_WIDE)
 	hint.offset_top = -14.0
@@ -98,8 +84,10 @@ func _add(box: VBoxContainer, text: String, f: Callable) -> void:
 func _show_settings(on: bool) -> void:
 	main_box.visible = not on
 	settings_box.visible = on
-	var first: Button = (settings_box.get_child(settings_box.get_child_count() - 1) as Button) if on else (main_box.get_child(0) as Button)
-	first.grab_focus()
+	if on:
+		settings_box.focus()
+	else:
+		(main_box.get_child(0) as Button).grab_focus()
 
 
 func _start(n: int) -> void:

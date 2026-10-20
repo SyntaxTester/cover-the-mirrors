@@ -311,6 +311,10 @@ var _clip := Rect2i()
 
 # split build (in-game guests)
 var _split := false
+var _sit_bend := false
+var _meta := {}
+var _sit_hip := Vector3.ZERO
+var _sit_knee := Vector3.ZERO
 var _parts := {}                 # part name -> SurfaceTool
 var _pivots := {}                # part name -> pivot (model space)
 var _pivot := Vector3.ZERO       # subtracted from every vertex of the current part
@@ -372,6 +376,9 @@ func _build_split(id: int, overrides: Dictionary) -> Dictionary:
 		st.index()
 		out[part] = st.commit()
 	out["pivots"] = _pivots.duplicate()
+	out["pose"] = _meta.get("pose", "rest")
+	out["prop"] = _meta.get("prop", "")
+	out["female"] = _meta.get("female", false)
 	out["mouth"] = _mouth_pos
 	# the game renders 480x270: keep the snapping grid 16:9
 	out["material"] = _make_material(ImageTexture.create_from_image(_atlas), Vector2(320, 180))
@@ -389,6 +396,15 @@ func _use_part(part: String, pivot := Vector3.ZERO) -> void:
 	_st = _parts[part]
 	_pivot = Vector3.ZERO if part == "body" else _base * _xf * pivot
 	_pivots[part] = _pivot
+
+
+## Back to a part that already exists, keeping its pivot (for props built
+## after the body, in model space).
+func _switch_part(part: String) -> void:
+	if not _split or not _parts.has(part):
+		return
+	_st = _parts[part]
+	_pivot = _pivots[part]
 
 
 func _ready() -> void:
@@ -736,6 +752,12 @@ func _expr(expr_name: String) -> Dictionary:
 		"eavesdrop": o = {"brow": -2.0, "asym": 0.012, "eye_h": 0.024,
 			"look": Vector2(1.0, 0.1), "mouth": "small"}
 		"distant": o = {"brow": -4.0, "eye_h": 0.018, "look": Vector2(-0.9, 0.3)}
+		# the other crowd up close: eyes too wide, pupils pinpricks
+		"stare": o = {"brow": 0.0, "raise": 0.006, "eye_w": 1.1, "eye_h": 0.031, "pupil": 0.005}
+		"drowned": o = {"brow": -6.0, "raise": 0.012, "eye_w": 1.15, "eye_h": 0.036, "pupil": 0.003,
+			"mouth": "open"}
+		"grin_wide": o = {"brow": -10.0, "raise": 0.014, "eye_w": 1.2, "eye_h": 0.034, "pupil": 0.004,
+			"mouth": "grin"}
 	e.merge(o, true)
 	return e
 
@@ -750,6 +772,7 @@ func _build_character(id: int) -> void:
 	var key: String = Character.keys()[id]
 	p["eye_col"] = EYE_COLS.get(key, EYE_BROWN)
 	p.merge(_overrides, true)
+	_meta = {"pose": str(p.get("pose", "rest")), "prop": str(p.get("prop", "")), "female": bool(p.get("female", false))}
 	_stack.clear()
 	_grain = CLOTH_GRAIN
 	_torso_tw = 0.5 * float(p.girth) + (0.06 if p.oversized else 0.0)
@@ -825,36 +848,47 @@ func _build_lower_body(p: Dictionary) -> void:
 	if p.female:
 		var tc: Color = p.top_col
 		var hip := _ring_at(rings, 0.93)
-		_use_part("knee", Vector3(0, KNEE_Y, 0))
 		for s: float in SIDES:
 			var x := s * 0.062
+			_use_part("knee_l" if s > 0.0 else "knee_r", Vector3(0, KNEE_Y, 0))
 			_tube([Vector3(x, 0.52, 0.0), Vector3(x, 0.30, 0.004), Vector3(x, 0.075, 0.0)],
 				[Vector2(0.040, 0.040), Vector2(0.036, 0.037), Vector2(0.027, 0.028)], 6,
 				[pants, pants, pants], Vector3.RIGHT, false, false)
 			_shoe(x, 0.025, 0.88, shoe, boots)
-		# skirt: the upper half rides on the thighs (a lap when seated),
-		# the lower half hangs from the knees
+		# skirt: the upper half rides on the thighs, the lower half hangs from
+		# the knees. A second copy, bent smoothly at hip and knee, is the lap
+		# a seated woman shows; one rigid copy per joint used to tear apart.
 		var top := Vector4(0.93, hip.y + 0.012, hip.z + 0.012, hip.w)
 		var knee_r := Vector4(KNEE_Y, top.y * 1.22, top.z * 1.3, 0.01)
 		var hem := Vector4(0.10, top.y * 1.42, top.z * 1.55, 0.02)
-		_drape([knee_r, hem], 0.0, TAU, 10, [tc, tc.darkened(0.06)], tc.darkened(0.45), true, true)
-		if boots == "mud":   # splashes on the hem from the bog road
-			for i in 5:
-				var y := _rng.randf_range(0.11, 0.2)
-				var k := (KNEE_Y - y) / (KNEE_Y - 0.10)
-				var z := lerpf(knee_r.z, hem.z, k) + lerpf(knee_r.w, hem.w, k) + 0.004
-				_box(Vector3(_rng.randf_range(-0.09, 0.09), y, z),
-					Vector3(_rng.randf_range(0.03, 0.06), _rng.randf_range(0.02, 0.045), 0.01),
-					C_MUD_WET.lerp(C_MUD_CAKED, _rng.randf()))
-		_use_part("legs", Vector3(0, HIP_Y, 0))
-		var mid := top.lerp(knee_r, 0.5)
-		_drape([top, mid, knee_r], 0.0, TAU, 10, [tc, tc, tc], tc.darkened(0.45), true, true)
-		if p.apron:
-			var lift := Vector4(0.0, 0.007, 0.007, 0.0)
-			_drape([Vector4(0.95, top.y, top.z, top.w) + lift, mid + lift,
-				Vector4(0.52, lerpf(top.y, knee_r.y, 0.9), lerpf(top.z, knee_r.z, 0.9), knee_r.w) + lift],
-				-0.26 * PI, 0.26 * PI, 4, [C_APRON, C_APRON, C_APRON.darkened(0.05)],
-				C_APRON.darkened(0.3), true, false)
+		var mud_seed := _rng.randi()
+		for seated in ([false, true] if _split else [false]):
+			_rng.seed = mud_seed
+			if seated:
+				_use_part("lap")
+				_begin_sit_bend()
+			else:
+				_use_part("knee", Vector3(0, KNEE_Y, 0))
+			_drape([knee_r, hem], 0.0, TAU, 10, [tc, tc.darkened(0.06)], tc.darkened(0.45), true, true)
+			if boots == "mud":   # splashes on the hem from the bog road
+				for i in 5:
+					var y := _rng.randf_range(0.11, 0.2)
+					var k := (KNEE_Y - y) / (KNEE_Y - 0.10)
+					var z := lerpf(knee_r.z, hem.z, k) + lerpf(knee_r.w, hem.w, k) + 0.004
+					_box(Vector3(_rng.randf_range(-0.09, 0.09), y, z),
+						Vector3(_rng.randf_range(0.03, 0.06), _rng.randf_range(0.02, 0.045), 0.01),
+						C_MUD_WET.lerp(C_MUD_CAKED, _rng.randf()))
+			if not seated:
+				_use_part("legs", Vector3(0, HIP_Y, 0))
+			var mid := top.lerp(knee_r, 0.5)
+			_drape([top, mid, knee_r], 0.0, TAU, 10, [tc, tc, tc], tc.darkened(0.45), true, true)
+			if p.apron:
+				var lift := Vector4(0.0, 0.007, 0.007, 0.0)
+				_drape([Vector4(0.95, top.y, top.z, top.w) + lift, mid + lift,
+					Vector4(0.52, lerpf(top.y, knee_r.y, 0.9), lerpf(top.z, knee_r.z, 0.9), knee_r.w) + lift],
+					-0.26 * PI, 0.26 * PI, 4, [C_APRON, C_APRON, C_APRON.darkened(0.05)],
+					C_APRON.darkened(0.3), true, false)
+			_sit_bend = false
 		_use_part("body")
 		return
 
@@ -862,11 +896,11 @@ func _build_lower_body(p: Dictionary) -> void:
 	var tr := 0.078 * lerpf(1.0, g, 0.7)
 	for s: float in SIDES:
 		var x := s * lx
-		_use_part("legs", Vector3(0, HIP_Y, 0))
+		_use_part("leg_l" if s > 0.0 else "leg_r", Vector3(0, HIP_Y, 0))
 		_tube([Vector3(x, 0.93, 0.0), Vector3(x, 0.70, 0.006), Vector3(x, 0.47, 0.004)],
 			[Vector2(tr, tr * 0.95), Vector2(tr * 0.86, tr * 0.86), Vector2(0.056, 0.056)], 6,
 			[pants, pants, pants], Vector3.RIGHT, false, true)
-		_use_part("knee", Vector3(0, KNEE_Y, 0))
+		_use_part("knee_l" if s > 0.0 else "knee_r", Vector3(0, KNEE_Y, 0))
 		var boot: bool = p.tall_boots
 		var leg := shoe if boot else pants.darkened(0.06)
 		var rr := 1.1 if boot else 1.0
@@ -888,12 +922,19 @@ func _build_lower_body(p: Dictionary) -> void:
 	if p.top == "coat":
 		# frock-coat skirt, open at the front; rides on the thighs so a seated
 		# guest's coat drapes over the lap
-		_use_part("legs", Vector3(0, HIP_Y, 0))
 		var tc: Color = p.top_col
 		var w := _ring_at(rings, 0.97)
 		var r0 := Vector4(0.99, w.y + 0.022, w.z + 0.02, w.w)
 		var r1 := Vector4(0.45, r0.y * 1.24, r0.z * 1.2, w.w)
-		_drape([r0, r1], 0.17 * PI, 1.83 * PI, 10, [tc, tc.darkened(0.05)], tc.darkened(0.45), true, false)
+		var rm := r0.lerp(r1, 0.4)
+		for seated in ([false, true] if _split else [false]):
+			if seated:
+				_use_part("lap")
+				_begin_sit_bend()
+			else:
+				_use_part("legs", Vector3(0, HIP_Y, 0))
+			_drape([r0, rm, r1], 0.17 * PI, 1.83 * PI, 10, [tc, tc, tc.darkened(0.05)], tc.darkened(0.45), true, false)
+			_sit_bend = false
 		_use_part("body")
 
 
@@ -1027,6 +1068,7 @@ func _build_arms(p: Dictionary) -> Dictionary:
 		var up: Vector3 = pose[idx]
 		var fo: Vector3 = pose[idx + 1]
 		var sh := Vector3(s * (sh_ring.y - ar * 0.55), Y_SHOULDER, sh_ring.w)
+		_use_part("arm_l" if s > 0.0 else "arm_r", sh)
 		var ub := Basis.from_euler(Vector3(up.x * DEG, 0.0, s * up.z * DEG))
 		var elbow := sh + ub * Vector3(0, -l1, 0)
 		var fb := ub * Basis.from_euler(Vector3(fo.x * DEG, -s * fo.y * DEG, 0.0))
@@ -1050,6 +1092,7 @@ func _build_arms(p: Dictionary) -> Dictionary:
 			[Vector2(0.011, 0.011) * hsz, Vector2(0.008, 0.008) * hsz], 5, [skin, skin], fb.x, true, true)
 		_grain = CLOTH_GRAIN
 		out["L" if s > 0.0 else "R"] = _xf * (wrist + hd * 0.06 * hsz)   # model space
+	_use_part("body")
 	return out
 
 
@@ -1553,6 +1596,7 @@ func _build_props(p: Dictionary, hands: Dictionary) -> void:
 	var prop: String = p.prop
 	match prop:
 		"ale":   # wooden tankard with a head of foam, raised mid-song
+			_switch_part("arm_r")
 			var h: Vector3 = hands.R
 			var mug := h + Vector3(0, 0.035, 0)
 			_prism(mug, 0.042, 0.042, 0.11, 6, C_WOOD, CAP_BOTTOM)
@@ -1560,6 +1604,7 @@ func _build_props(p: Dictionary, hands: Dictionary) -> void:
 			_prism(mug + Vector3(0, 0.062, 0), 0.044, 0.04, 0.02, 6, Color(0.93, 0.89, 0.78), CAP_TOP)
 			_box(mug + Vector3(-0.055, 0, 0), Vector3(0.015, 0.07, 0.015), C_WOOD)
 		"stick", "cane":
+			_switch_part("arm_r")
 			var h: Vector3 = hands.R
 			var top_y := h.y + (0.06 if prop == "stick" else 0.02)
 			var foot := Vector3(h.x - 0.02, 0.0, h.z + 0.08)
@@ -1574,11 +1619,13 @@ func _build_props(p: Dictionary, hands: Dictionary) -> void:
 				_box(tip + Vector3(0, 0.01, 0.04), Vector3(0.028, 0.028, 0.10), C_WOOD)
 				_box(tip + Vector3(0, -0.02, 0.085), Vector3(0.026, 0.06, 0.026), C_WOOD)
 		"bag":   # merchant's leather satchel on the left hip
+			_switch_part("body")
 			var x := _chest_w(p) * 0.5 + 0.07
 			_box(Vector3(x, 0.86, 0.02), Vector3(0.08, 0.20, 0.24), C_LEATHER)
 			_box(Vector3(x + 0.002, 0.93, 0.02), Vector3(0.085, 0.07, 0.245), C_LEATHER.darkened(0.15))
 			_box(Vector3(x + 0.045, 0.91, 0.02), Vector3(0.008, 0.025, 0.025), C_BRASS)
 		"fiddle":   # tucked under the chin, bowed with the right hand
+			_switch_part("body")
 			var lh: Vector3 = hands.L
 			var rh: Vector3 = hands.R
 			var yv := (lh - _chin).normalized()
@@ -1597,6 +1644,7 @@ func _build_props(p: Dictionary, hands: Dictionary) -> void:
 			_beam(rh - bdir * 0.06, rh + bdir * 0.62, 0.01, 0.01, C_WOOD.darkened(0.2))
 			_beam(rh - bdir * 0.04 + Vector3(0, -0.012, 0), rh + bdir * 0.6 + Vector3(0, -0.012, 0),
 				0.006, 0.006, Color(0.90, 0.88, 0.80))
+	_switch_part("body")
 	_xf = saved
 
 
@@ -1761,10 +1809,30 @@ func _tri(a: Vector3, b: Vector3, c: Vector3, hint: Vector3, col: Color, uvs: Ar
 ## painted-texture UV2; moved into the current part's pivot space.
 func _vert(p: Vector3, n: Vector3, col: Color, uv2: Vector2) -> void:
 	_st.set_color(_final_color(col, p))
-	_st.set_normal(n)
+	var pos := p
+	var nn := n
+	if _sit_bend:
+		# seated: bend forward at the hip, down again at the knee, with soft
+		# weights so the cloth stretches instead of splitting
+		var h := _sit_hip.y - _sit_knee.y
+		var wk := smoothstep(_sit_knee.y + 0.2 * h, _sit_knee.y - 0.2 * h, p.y)
+		var wh := smoothstep(_sit_hip.y + 0.2 * h, _sit_hip.y - 0.45 * h, p.y)
+		var bk := Basis(Vector3.RIGHT, -PI * 0.5 * wk)
+		var bh := Basis(Vector3.RIGHT, PI * 0.5 * wh)
+		pos = _sit_hip + bh * (_sit_knee + bk * (p - _sit_knee) - _sit_hip)
+		nn = (bh * bk) * n
+	_st.set_normal(nn)
 	_st.set_uv(_uv(p, n))
 	_st.set_uv2(uv2)
-	_st.add_vertex(p - _pivot)
+	_st.add_vertex(pos - _pivot)
+
+
+## Seated copies of skirts and coat tails are bent around these pivots
+## (model space, game orientation: the legs swing toward -Z).
+func _begin_sit_bend() -> void:
+	_sit_bend = true
+	_sit_hip = _base * _xf * Vector3(0, HIP_Y, 0)
+	_sit_knee = _base * _xf * Vector3(0, KNEE_Y, 0)
 
 
 ## Smooth-shaded (Gouraud) surface through a grid of local points.

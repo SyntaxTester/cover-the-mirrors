@@ -14,6 +14,8 @@ const TITLES := {
 	"vigil": "The dead man sat up.",
 }
 const NIGHT_MUSIC_DB := -14.0
+const MAX_QUEUE := 3
+const STALE := 14.0               # seconds a queued line may wait before it's dropped
 const NIGHT_MUSIC_FOR := 70.0     # the folk tune opens the night, then leaves the house to its sounds
 
 @onready var hint: Label = $Hint
@@ -26,6 +28,9 @@ const NIGHT_MUSIC_FOR := 70.0     # the folk tune opens the night, then leaves t
 @onready var subtitle: Label = $Subtitle
 
 var intro_t := 0.0
+var queue: Array = []             # [who, text, waited, urgent]
+var line_age := 0.0
+var line_min := 0.0
 var sub_t := 0.0
 var typing := false
 var type_pos := 0.0
@@ -78,12 +83,51 @@ func set_questions(s: String) -> void:
 
 
 ## Subtitle that types itself out, with the typing sound while it does.
-func say(who: String, text: String) -> void:
+## Lines never cut each other off: while one is still being read, the next
+## waits its turn. `now` (an answer to the player, the visitor at the door)
+## jumps the queue and lets the current line finish quickly.
+func say(who: String, text: String, now := false) -> void:
+	if subtitle.text == "" or (not typing and line_age >= line_min and queue.is_empty()):
+		_show_line(who, text)
+		return
+	if now:
+		queue.push_front([who, text, 0.0, true])
+		if typing:
+			_finish_typing()
+		line_min = minf(line_min, line_age + 0.9)
+		sub_t = minf(sub_t, 0.9)
+		return
+	for q in queue:
+		if q[0] == who and q[1] == text:
+			return   # already waiting
+	queue.append([who, text, 0.0, false])
+	while queue.size() > MAX_QUEUE:
+		# drop the oldest piece of chatter, never an answer
+		var dropped := false
+		for i in queue.size():
+			if not queue[i][3]:
+				queue.remove_at(i)
+				dropped = true
+				break
+		if not dropped:
+			queue.pop_back()
+
+
+func _finish_typing() -> void:
+	typing = false
+	subtitle.visible_characters = -1
+	text_snd.stop()
+
+
+func _show_line(who: String, text: String) -> void:
 	subtitle.text = "%s: %s" % [who, text]
 	type_pos = who.length() + 2.0   # the name appears at once
 	subtitle.visible_characters = int(type_pos)
 	typing = true
 	sub_t = Config.subtitle_time + text.length() / TYPE_SPEED
+	line_age = 0.0
+	# long enough to type it out and read it before anyone else may speak
+	line_min = text.length() / TYPE_SPEED + 1.6 + text.length() / 40.0
 	if not text_snd.playing:
 		text_snd.play(randf() * 6.0)
 
@@ -115,9 +159,9 @@ func won(n: int) -> void:
 		var e := ending()
 		lines.insert(0, e[1])
 		lines.insert(1, EPILOGUE)
-		show_end(e[0], "%s\n\nR - start over" % "\n".join(lines))
+		show_end(e[0], "%s\n\nR - start over    M - main menu" % "\n".join(lines))
 	else:
-		show_end("Morning.", "Night %d survived\n%s\n\nE - next night   R - restart" % [n + 1, "\n".join(lines)])
+		show_end("Morning.", "Night %d survived\n%s\n\nE - next night   R - restart   M - main menu" % [n + 1, "\n".join(lines)])
 
 
 const EPILOGUE := "The sexton had dug two graves by the chapel wall. The second stone read: Ronan Donnelly."
@@ -169,6 +213,14 @@ func _fade_music(t: float) -> void:
 
 
 func _process(dt: float) -> void:
+	line_age += dt
+	for q in queue:
+		q[2] += dt
+	# stale chatter isn't worth saying any more
+	queue = queue.filter(func(q): return q[3] or q[2] < STALE)
+	if not queue.is_empty() and not typing and line_age >= line_min:
+		var n: Array = queue.pop_front()
+		_show_line(n[0], n[1])
 	if typing:
 		type_pos += dt * TYPE_SPEED
 		subtitle.visible_characters = int(type_pos)
@@ -182,6 +234,9 @@ func _process(dt: float) -> void:
 			subtitle.text = ""
 			typing = false
 			text_snd.stop()
+			if not queue.is_empty():
+				var n: Array = queue.pop_front()
+				_show_line(n[0], n[1])
 	if intro_t > 0.0:
 		intro_t -= dt
 		intro.modulate.a = clampf(intro_t, 0.0, 1.0)

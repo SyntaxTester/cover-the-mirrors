@@ -7,6 +7,9 @@ var bob_freq := 7.0
 var bob_amount := 0.025
 var interact_dist := 2.0
 var zoom_fov := 32.0
+var volume := 1.0               # master volume, 0..1 (saved with mouse_sens)
+
+const SETTINGS_PATH := "user://settings.cfg"
 
 var guest_speed := 1.1
 var stalk_speed := 1.5         # a double only moves while nobody is looking at it
@@ -100,3 +103,27 @@ var nights := [
 		"double_walk_max": 32.0,
 	},
 ]
+
+
+func _ready() -> void:
+	load_settings()
+
+
+func load_settings() -> void:
+	var c := ConfigFile.new()
+	if c.load(SETTINGS_PATH) == OK:
+		mouse_sens = float(c.get_value("controls", "mouse_sens", mouse_sens))
+		volume = float(c.get_value("sound", "volume", volume))
+	apply_settings()
+
+
+func save_settings() -> void:
+	var c := ConfigFile.new()
+	c.set_value("controls", "mouse_sens", mouse_sens)
+	c.set_value("sound", "volume", volume)
+	c.save(SETTINGS_PATH)
+
+
+func apply_settings() -> void:
+	var bus := AudioServer.get_bus_index("Master")
+	AudioServer.set_bus_volume_db(bus, linear_to_db(maxf(volume, 0.001)))

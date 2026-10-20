@@ -72,14 +72,14 @@ func _photo(model: String) -> Texture2D:
 	vp.add_child(sun)
 	var piv: Dictionary = parts["pivots"]
 	var mat: Material = parts["material"]
-	for pair in [["body", Vector3.ZERO], ["legs", piv["legs"]], ["knee", piv["knee"]], ["head", piv["head"]]]:
-		var m: Mesh = parts.get(pair[0])
-		if m:
-			var mi := MeshInstance3D.new()
-			mi.mesh = m
-			mi.material_override = mat
-			mi.position = pair[1]
-			vp.add_child(mi)
+	for key in parts:
+		if key == "lap" or not (parts[key] is Mesh):
+			continue   # "lap" is the seated copy of a skirt
+		var mi := MeshInstance3D.new()
+		mi.mesh = parts[key]
+		mi.material_override = mat
+		mi.position = piv.get(key, Vector3.ZERO)
+		vp.add_child(mi)
 	var head: Vector3 = piv["head"]
 	var cam := Camera3D.new()
 	cam.fov = 26.0

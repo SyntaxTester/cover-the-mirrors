@@ -1,11 +1,13 @@
 extends Interactable
 
-enum S { DOOR, WALK, SEATED, ASLEEP, LEAVE, STALK, APPROACH, WANDER, HOLD, RETURN }
+enum S { DOOR, WALK, SEATED, ASLEEP, LEAVE, STALK, APPROACH, WANDER, HOLD, RETURN, SCARE }
 
 const BOOT_CLEAN := preload("res://assets/materials/boot_clean.tres")
 const BOOT_MUD := preload("res://assets/materials/boot_mud.tres")
 const FALLBACK_MODEL := "SEAN"
-const WET_FOR := 150.0          # real guests drip rain this long after arriving
+const WET_FOR := 150.0
+const HOPPER := "SULTAN_ESMAGZAM"   # Esmagzam bounces along on both feet; leave him be
+const STAND_TIME := 0.45          # real guests drip rain this long after arriving
 
 @onready var legs: Node3D = $Legs
 @onready var knee: Node3D = $Legs/Knee
@@ -39,6 +41,13 @@ var steps: AudioStreamPlayer3D
 var chase: AudioStreamPlayer3D
 var drips: CPUParticles3D
 var rig: Node3D
+var body: VillagerBody
+var moved := 0.0
+var sit_blend := 1.0
+var sit_from := Transform3D.IDENTITY
+var sit_to := Transform3D.IDENTITY
+var stand_left := 0.0
+var stand_from_y := 0.0
 var anim_t := 0.0
 var walk_ph := 0.0
 var shiver_t := 0.0
@@ -106,8 +115,8 @@ func setup(d: Dictionary, look: Dictionary) -> void:
 		_make_drips()
 
 
-# Builds the PS1 villager (scenes/ps1_villager.gd) named in guests.json as
-# four meshes on the Legs / Knee / Head pivots so sitting and head turns work.
+# Builds the PS1 villager (scenes/ps1_villager.gd) named in guests.json as a
+# VillagerBody: legs, arms and head on their own pivots (scripts/villager_body.gd).
 func build_model(model: String, mutation: Dictionary = {}) -> void:
 	var id := PS1Villager.character_from_name(model)
 	if id < 0:
@@ -119,33 +128,16 @@ func build_model(model: String, mutation: Dictionary = {}) -> void:
 	var o := {"shoe_col": boot.albedo_color, "boots": "clean" if clean else "mud"}
 	o.merge(mutation, true)   # a double's one wrong detail
 	var parts := PS1Villager.build_guest_parts(id, o)
-	var piv: Dictionary = parts["pivots"]
-	var p_legs: Vector3 = piv["legs"]
-	var p_knee: Vector3 = piv["knee"]
-	var p_head: Vector3 = piv["head"]
-	hip_y = p_legs.y
-	legs.position = p_legs
-	knee.position = p_knee - p_legs
-	head.position = p_head
+	body = VillagerBody.new()
+	body.name = "Rig"
+	add_child(body)
+	body.build(parts, head)
+	body.hop = model == HOPPER
+	body.calm = not double
+	rig = body
+	hip_y = body.hip.y
 	breath.position = parts["mouth"]
-	var mat: Material = parts["material"]
-	add_part(self, parts.get("body"), mat)
-	add_part(legs, parts.get("legs"), mat)
-	add_part(knee, parts.get("knee"), mat)
-	add_part(head, parts.get("head"), mat)
-	_make_rig()
-
-
-func _make_rig() -> void:
-	rig = Node3D.new()
-	rig.name = "Rig"
-	add_child(rig)
-	var move: Array = [legs, head]
-	for c in get_children():
-		if c is MeshInstance3D:
-			move.append(c)
-	for n in move:
-		n.reparent(rig, false)
+	legs.visible = false   # the scene's old single-leg pivots are unused now
 	anim_t = randf() * 10.0
 	shiver_t = randf_range(3.0, 8.0)
 	snap_t = randf_range(6.0, 12.0)
@@ -156,45 +148,37 @@ func _walking() -> bool:
 
 
 func _animate(dt: float) -> void:
-	if rig == null:
+	if body == null:
 		return
 	anim_t += dt
-	var moving := _walking() and not path.is_empty() and not (state == S.STALK and seen)
-	var pos := Vector3.ZERO
-	var rot := Vector3.ZERO
-	var lg := legs.rotation.x if state in [S.SEATED, S.ASLEEP] else 0.0
-	var kn := knee.rotation.x if state in [S.SEATED, S.ASLEEP] else 0.0
-	if moving:
-		walk_ph += dt * speed * 6.0
-		var a := clampf(speed / 1.1, 0.6, 2.4)
-		pos.y = absf(sin(walk_ph)) * 0.03 * a
-		rot.z = sin(walk_ph) * 0.035
-		rot.x = -0.05 * a
-		if state == S.STALK:
-			rot.x = -0.3
-			rot.z = sin(walk_ph * 0.5) * 0.08
-		lg = sin(walk_ph * 2.0) * 0.06 * a
-		kn = -absf(sin(walk_ph)) * 0.18 * a
-	elif state == S.SEATED or state == S.ASLEEP:
-		if not double:
-			var br := 1.2 if state == S.ASLEEP else 1.7
-			pos.y = sin(anim_t * br) * 0.006
-			rot.x = (0.16 if state == S.ASLEEP else 0.0) + sin(anim_t * 0.31) * 0.035
-			rot.z = sin(anim_t * 0.23) * 0.02
-	elif state == S.DOOR or state == S.HOLD:
-		if not double:
-			rot.z = sin(anim_t * 0.8) * 0.025
-			pos.y = sin(anim_t * 1.6) * 0.004
-			shiver_t -= dt
-			if shiver_t < 0.0:
-				rot += Vector3(randf_range(-1, 1), 0, randf_range(-1, 1)) * 0.012
-				if shiver_t < -0.6:
-					shiver_t = randf_range(3.0, 8.0)
-	rig.position = rig.position.lerp(pos, minf(dt * 12.0, 1.0))
-	rig.rotation = rig.rotation.lerp(rot, minf(dt * 8.0, 1.0))
-	if moving:
-		legs.rotation.x = lg
-		knee.rotation.x = kn
+	match state:
+		S.SEATED:
+			body.mode = "sit"
+		S.ASLEEP:
+			body.mode = "sleep"
+		S.STALK:
+			body.mode = "stalk"
+		S.DOOR, S.HOLD, S.SCARE:
+			body.mode = "hold"
+		_:
+			body.mode = "walk"
+	body.speed = moved / dt if dt > 0.0 else 0.0
+	moved = 0.0
+	# sitting down: ease from where they stand onto the chair
+	if sit_blend < 1.0:
+		sit_blend = minf(sit_blend + dt / VillagerBody.SIT_TIME, 1.0)
+		global_transform = sit_from.interpolate_with(sit_to, smoothstep(0.0, 1.0, sit_blend))
+	# getting up: rise before the first step
+	if stand_left > 0.0:
+		stand_left = maxf(stand_left - dt, 0.0)
+		global_position.y = lerpf(0.0, stand_from_y, smoothstep(0.0, 1.0, stand_left / STAND_TIME))
+	# a double at the door shivers now and then, like the cold got into it
+	if (state == S.DOOR or state == S.HOLD) and not double:
+		shiver_t -= dt
+		if shiver_t < 0.0:
+			body.rotation += Vector3(randf_range(-1, 1), 0, randf_range(-1, 1)) * 0.01
+			if shiver_t < -0.6:
+				shiver_t = randf_range(3.0, 8.0)
 
 
 func add_part(parent: Node3D, mesh: Mesh, mat: Material) -> void:
@@ -245,8 +229,10 @@ func answer(q: String) -> String:
 	return str(answers.get(q, "..."))
 
 
-func speak(text: String) -> void:
-	get_tree().call_group("hud", "say", nick, text)
+func speak(text: String, now := false) -> void:
+	get_tree().call_group("hud", "say", nick, text, now)
+	if body:
+		body.talk(2.0 + text.length() / 30.0)
 
 
 func head_pos() -> Vector3:
@@ -283,6 +269,8 @@ func _process(dt: float) -> void:
 		tp = -0.65
 	elif state == S.SEATED or state == S.DOOR or state == S.HOLD or (state == S.STALK and seen):
 		ty = yaw_to_player()
+	elif state == S.SCARE:
+		ty = 0.0   # the whole body faces you; see face_camera()
 	var turn := 3.0
 	if double and (state == S.SEATED or state == S.DOOR):
 		snap_t -= dt
@@ -357,6 +345,8 @@ func breathe(dt: float) -> void:
 
 
 func step(dt: float) -> void:
+	if stand_left > 0.0 or sit_blend < 1.0:
+		return   # still getting up off the chair
 	if path.is_empty():
 		arrive()
 		return
@@ -369,8 +359,10 @@ func step(dt: float) -> void:
 	if dist <= mv:
 		global_position = Vector3(tgt.x, pos.y, tgt.z)
 		path.pop_front()
+		moved += dist
 	else:
 		global_position = pos + d / dist * mv
+		moved += mv
 	if dist > 0.01:
 		rotation.y = lerp_angle(rotation.y, atan2(-d.x, -d.z), dt * 6.0)
 
@@ -387,6 +379,14 @@ func arrive() -> void:
 			get_tree().call_group("visitors", "on_at_spot", self)
 		S.WANDER:
 			state = S.HOLD
+			if has_meta("rush_line"):
+				# the last step is right into your face
+				var cam := get_viewport().get_camera_3d()
+				if cam:
+					var dir := global_position - cam.global_position
+					face_camera(cam, 0.34, dir)
+				speak(str(get_meta("rush_line")), true)
+				remove_meta("rush_line")
 		S.RETURN:
 			sit()
 		S.STALK:
@@ -395,16 +395,38 @@ func arrive() -> void:
 
 
 func stand() -> void:
-	legs.rotation.x = 0.0
-	knee.rotation.x = 0.0
-	global_position.y = 0.0
+	sit_blend = 1.0
+	if body and body.sit_k > 0.01:
+		stand_from_y = global_position.y
+		stand_left = STAND_TIME
+		body.set_seated(false)
+	else:
+		global_position.y = 0.0
+
+
+func _seat_xf(s: Node3D) -> Transform3D:
+	var xf := s.global_transform
+	xf.origin.y = s.global_position.y - (hip_y - 0.05)
+	return xf
+
+
+## On the chair at once (for things that appear already seated).
+func place_seated(s: Node3D) -> void:
+	seat = s
+	global_transform = _seat_xf(s)
+	sit_blend = 1.0
+	stand_left = 0.0
+	if body:
+		body.set_seated(true, true)
 
 
 func sit() -> void:
-	global_transform = seat.global_transform
-	global_position.y = seat.global_position.y - (hip_y - 0.05)
-	legs.rotation.x = PI / 2
-	knee.rotation.x = -PI / 2
+	sit_from = global_transform
+	sit_to = _seat_xf(seat)
+	sit_blend = 0.0
+	stand_left = 0.0
+	if body:
+		body.set_seated(true)
 	state = S.SEATED
 	if double:
 		stalk_t = randf_range(Game.cfg().double_walk_min, Game.cfg().double_walk_max)
@@ -414,8 +436,7 @@ func sit() -> void:
 
 func walk_in(s: Node3D, pts: Array) -> void:
 	seat = s
-	path = pts.duplicate()
-	path.append(Vector3(s.global_position.x, 0.0, s.global_position.z))
+	path = Nav.route(global_position, pts + [Vector3(s.global_position.x, 0.0, s.global_position.z)])
 	state = S.WALK
 	speed = Config.guest_speed
 	stand()
@@ -424,7 +445,7 @@ func walk_in(s: Node3D, pts: Array) -> void:
 func leave(pts: Array) -> void:
 	seat = null
 	holding = false
-	path = pts.duplicate()
+	path = Nav.route(global_position, pts)
 	state = S.LEAVE
 	speed = Config.guest_speed
 	stand()
@@ -432,7 +453,7 @@ func leave(pts: Array) -> void:
 
 func stalk() -> void:
 	var v = get_tree().get_first_node_in_group("visitors")
-	path = v.stalk_path().duplicate() if v else []
+	path = Nav.route(global_position, v.stalk_path()) if v else []
 	state = S.STALK
 	wants_stalk = false
 	speed = Config.stalk_speed
@@ -443,7 +464,7 @@ func stalk() -> void:
 
 
 func approach(pts: Array, final_yaw: float) -> void:
-	path = pts.duplicate()
+	path = Nav.route(global_position, pts)
 	state = S.APPROACH
 	speed = Config.approach_speed
 	set_meta("final_yaw", final_yaw)
@@ -455,7 +476,7 @@ func rush_to(p: Vector3, hold_for: float) -> bool:
 	if state != S.SEATED or double or seat == null:
 		return false
 	home = seat
-	path = [Vector3(p.x, 0.0, p.z)]
+	path = Nav.route(global_position, [Vector3(p.x, 0.0, p.z)])
 	state = S.WANDER
 	speed = Config.rush_speed
 	hold_left = hold_for
@@ -463,11 +484,51 @@ func rush_to(p: Vector3, hold_for: float) -> bool:
 	return true
 
 
+## Stand so the face sits `dist` in front of the camera lens, looking into it.
+## `from_dir` is where the face should be relative to the camera (default:
+## straight ahead of it). Used by the scares (scripts/systems/scares.gd).
+func face_camera(cam: Camera3D, dist: float, from_dir := Vector3.ZERO) -> void:
+	var dir := from_dir if from_dir != Vector3.ZERO else -cam.global_basis.z
+	dir = Vector3(dir.x, 0.0, dir.z).normalized()
+	var target := cam.global_position + dir * dist
+	var look := Vector3(-dir.x, 0.0, -dir.z)
+	global_basis = Basis.looking_at(look, Vector3.UP)
+	head.rotation = Vector3.ZERO
+	yaw = 0.0
+	pitch = 0.0
+	if body:
+		body.rotation = Vector3.ZERO
+		body.position = Vector3.ZERO
+	var face := head.global_transform * Vector3(0, 0.1, -0.09)
+	global_position += target - face
+
+
+## Taken out of the room for a scare; afterwards they walk back to their seat.
+func begin_scare() -> void:
+	if state == S.SEATED or state == S.ASLEEP:
+		home = seat
+	state = S.SCARE
+	sit_blend = 1.0
+	stand_left = 0.0
+	if body:
+		body.set_seated(false, true)
+
+
+func end_scare() -> void:
+	global_position.y = 0.0
+	if home != null:
+		_go_home()
+	else:
+		state = S.HOLD
+		hold_left = 1.0
+
+
 func _go_home() -> void:
+	global_position.y = 0.0
 	if home == null:
 		state = S.SEATED
 		return
-	path = [Vector3(home.global_position.x, 0.0, home.global_position.z)]
+	path = Nav.route(global_position, [Vector3(home.global_position.x, 0.0, home.global_position.z)])
 	state = S.RETURN
 	speed = Config.guest_speed
 
@@ -503,9 +564,15 @@ func is_asleep() -> bool:
 
 
 func say() -> void:
+	if nick == "Esmagzam":
+		# a different noise every visit
+		var n := int(Game.run.get("esmagzam_visits", 0))
+		Game.run["esmagzam_visits"] = n + 1
+		voice.stream = Sounds.ESMAGZAM[n % Sounds.ESMAGZAM.size()]
+		voice.volume_db = 4.0
 	if voice.stream:
 		voice.play()
-	speak(line)
+	speak(line, true)   # the visitor at the door answers the hatch at once
 
 
 func get_prompt() -> String:

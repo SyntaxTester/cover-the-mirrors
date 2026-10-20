@@ -2,8 +2,12 @@ extends Node3D
 
 const SYSTEMS := [
 	["Portraits", preload("res://scripts/systems/portraits.gd")],
+	["NavBake", preload("res://scripts/systems/nav_bake.gd")],
 	["Interview", preload("res://scripts/systems/interview.gd")],
 	["Roles", preload("res://scripts/systems/roles.gd")],
+	["Scares", preload("res://scripts/systems/scares.gd")],
+	["WindowFace", preload("res://scripts/systems/window_face.gd")],
+	["TallOne", preload("res://scripts/systems/tall_one.gd")],
 	["Director", preload("res://scripts/systems/director.gd")],
 	["Attack", preload("res://scripts/systems/attack.gd")],
 	["Storm", preload("res://scripts/systems/storm.gd")],

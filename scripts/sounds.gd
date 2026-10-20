@@ -30,10 +30,18 @@ const VIOLIN_RISE := preload("res://assets/sounds/Increasing_spooky_violin_sound
 const VIOLIN_STING := preload("res://assets/sounds/Sudden_spooky_violin_sound.mp3")
 const VIOLINS := preload("res://assets/sounds/Scary_violins.mp3")
 const HEART := preload("res://assets/sounds/A_bit_rapid_heartbeat.mp3")
-const THUNDER := [
-	preload("res://assets/sounds/thunder_1.wav"),
-	preload("res://assets/sounds/thunder_2.wav"),
-	preload("res://assets/sounds/thunder_3.wav"),
+const THUNDER := [   # compressed, bass-boosted and normalised copies of thunder_1..3.wav
+	preload("res://assets/sounds/thunder_loud_1.ogg"),
+	preload("res://assets/sounds/thunder_loud_2.ogg"),
+	preload("res://assets/sounds/thunder_loud_3.ogg"),
+]
+const THUNDER_NEAR := preload("res://assets/sounds/thunder_strike.ogg")   # a strike right over the house
+## Esmagzam's noises: a different one every time he comes to the door.
+const ESMAGZAM := [
+	preload("res://assets/sounds/esmagzam_1.ogg"),   # hee hee
+	preload("res://assets/sounds/esmagzam_2.ogg"),   # higher and quicker
+	preload("res://assets/sounds/esmagzam_3.ogg"),   # slow and low, in an echo
+	preload("res://assets/sounds/esmagzam_4.ogg"),   # backwards
 ]
 const SKITTER := preload("res://assets/sounds/skitter.wav")
 const SCREAM := preload("res://assets/sounds/scream.wav")

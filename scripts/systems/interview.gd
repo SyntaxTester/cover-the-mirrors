@@ -57,7 +57,7 @@ func _unhandled_input(e: InputEvent) -> void:
 		return
 	left -= 1
 	Sounds.play(self, Sounds.UI_SELECT, -10.0)
-	g.speak(g.answer(q))
+	g.speak(g.answer(q), true)   # an answer to the player never waits behind chatter
 	get_viewport().set_input_as_handled()
 
 

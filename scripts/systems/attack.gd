@@ -22,6 +22,31 @@ var flash: ColorRect
 var via := Vector3.INF
 var cam: Camera3D
 var shake := 0.0
+var glitch: ColorRect
+var glitch_mat: ShaderMaterial
+var nav_goal := Vector3.INF
+var nav_t := 0.0
+
+## The catch: the picture tears, colours split, it flickers to negative.
+const GLITCH := """
+shader_type canvas_item;
+uniform sampler2D screen_tex : hint_screen_texture, filter_nearest;
+uniform float k = 0.0;
+uniform float seed = 0.0;
+float h(vec2 p) { return fract(sin(dot(p, vec2(12.9898, 78.233)) + seed) * 43758.5453); }
+void fragment() {
+	vec2 uv = SCREEN_UV;
+	float band = floor(uv.y * 24.0);
+	uv.x += (h(vec2(band, 1.0)) - 0.5) * 0.09 * k * step(0.55, h(vec2(band, 2.0)));
+	float sp = 0.018 * k;
+	vec3 c = vec3(texture(screen_tex, uv + vec2(sp, 0.0)).r, texture(screen_tex, uv).g,
+		texture(screen_tex, uv - vec2(sp, 0.0)).b);
+	c = mix(c, vec3(1.0) - c, step(0.9, h(vec2(seed, 3.0))) * step(0.5, k));
+	c += (h(floor(FRAGCOORD.xy * 0.5)) - 0.5) * 0.12 * k;
+	c *= mix(vec3(1.0), vec3(1.3, 0.55, 0.5), k * 0.6);
+	COLOR = vec4(c, 1.0);
+}
+"""
 
 
 func _ready() -> void:
@@ -39,6 +64,17 @@ func _ready() -> void:
 	flash.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	flash.set_anchors_preset(Control.PRESET_FULL_RECT)
 	layer.add_child(flash)
+	glitch = ColorRect.new()
+	glitch.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	glitch.set_anchors_preset(Control.PRESET_FULL_RECT)
+	var sh := Shader.new()
+	sh.code = GLITCH
+	glitch_mat = ShaderMaterial.new()
+	glitch_mat.shader = sh
+	glitch.material = glitch_mat
+	glitch.visible = false
+	layer.add_child(glitch)
+	layer.move_child(glitch, 0)
 
 
 func begin(g) -> void:
@@ -88,6 +124,21 @@ func _room(p: Vector3) -> String:
 	if p.x <= 14.05:
 		return "hall"
 	return "out"
+
+
+## Around walls and furniture (scripts/nav.gd); the old door table if the
+## navigation mesh isn't ready.
+func _goal(c: Vector3, p: Vector3, dt: float) -> Vector3:
+	if not Nav.is_baked:
+		return _next_point(c, p)
+	nav_t -= dt
+	if nav_t <= 0.0 or nav_goal == Vector3.INF or Vector2(c.x - nav_goal.x, c.z - nav_goal.z).length() < 0.25:
+		nav_t = 0.25
+		var r := Nav.route(c, [p])
+		nav_goal = r[0] if not r.is_empty() else p
+		if r.size() > 1 and Vector2(c.x - nav_goal.x, c.z - nav_goal.z).length() < 0.25:
+			nav_goal = r[1]
+	return nav_goal
 
 
 func _next_point(c: Vector3, p: Vector3) -> Vector3:
@@ -150,7 +201,7 @@ func _process(dt: float) -> void:
 			if p == null:
 				return
 			var c := creature.global_position
-			var goal := _next_point(c, p.global_position)
+			var goal := _goal(c, p.global_position, dt)
 			var d := Vector3(goal.x - c.x, 0, goal.z - c.z)
 			var dist := d.length()
 			var step := Config.attack_speed * dt
@@ -162,12 +213,22 @@ func _process(dt: float) -> void:
 				_catch()
 		Phase.CATCH:
 			_hold_face()
-			shake = maxf(shake - dt, 0.0)
+			shake = maxf(shake - dt * 0.6, 0.0)
 			if cam:
-				cam.h_offset = randf_range(-1, 1) * 0.04 * shake
-				cam.v_offset = randf_range(-1, 1) * 0.04 * shake
-			flash.color = Color(0.5, 0.02, 0.0, 0.35 * shake) if t < 0.9 else Color(0, 0, 0, clampf((t - 0.9) * 4.0, 0, 1))
-			if t >= 1.15:
+				cam.h_offset = randf_range(-1, 1) * 0.05 * shake
+				cam.v_offset = randf_range(-1, 1) * 0.05 * shake
+			# a white frame, then red flicker, the picture tearing apart
+			glitch.visible = t < 1.45
+			glitch_mat.set_shader_parameter("k", clampf(0.9 - t * 0.6, 0.0, 1.0))
+			glitch_mat.set_shader_parameter("seed", randf() * 100.0)
+			if t < 0.04:
+				flash.color = Color(1, 1, 1, 0.85)
+			elif t < 1.45:
+				flash.color = Color(0.6, 0.0, 0.0, (0.28 if fmod(t, 0.16) < 0.05 else 0.0) * shake)
+			else:
+				flash.color = Color(0, 0, 0, clampf((t - 1.45) * 4.0, 0, 1))
+			if t >= 1.7:
+				glitch.visible = false
 				phase = Phase.DONE
 				if skitter:
 					skitter.stop()
@@ -190,8 +251,15 @@ func _catch() -> void:
 	if p:
 		p.set_physics_process(false)
 		p.set_process_unhandled_input(false)
-	Sounds.play(self, Sounds.SCREAM, 6.0)
-	Sounds.play(self, Sounds.JUMPSCARE, 2.0)
+	Sounds.play(self, Sounds.SCREAM, 8.0)
+	var deep := Sounds.play(self, Sounds.SCREAM, 8.0)
+	if deep:
+		deep.pitch_scale = 0.55   # a deeper roar under it
+	Sounds.play(self, Sounds.JUMPSCARE, 4.0)
+	if cam:
+		# the view lurches: wide, then slammed in on the face
+		cam.fov = 105.0
+		create_tween().tween_property(cam, "fov", 58.0, 0.35).set_trans(Tween.TRANS_EXPO).set_ease(Tween.EASE_OUT)
 	_hold_face()
 
 
@@ -207,13 +275,18 @@ func _hold_face() -> void:
 	creature.look_at(Vector3(cp.x, 0, cp.z), Vector3.UP)
 	var head: Node3D = creature.get("head")
 	if head:
-		var off := (cp + fwd * 0.55 + Vector3(0, -0.05, 0)) - head.global_position
+		# closer every frame for the first instant: it lunges into the lens,
+		# eyes level with yours
+		var d := lerpf(0.7, 0.3, clampf(t / 0.18, 0.0, 1.0))
+		var eyes := head.global_transform * Vector3(0, 0.13, -0.1)
+		var off := (cp + fwd * d + Vector3(0, -0.03, 0)) - eyes
 		creature.global_position += off
 		creature.set("face_target", cp)
 	var glow: OmniLight3D = creature.get("glow")
 	if glow:
-		glow.global_position = cp + fwd * 0.25 + Vector3(0, 0.25, 0)
-		glow.light_energy = 1.4
+		# cold light from just under the chin
+		glow.global_position = cp + fwd * 0.12 + Vector3(0, -0.22, 0)
+		glow.light_energy = 1.8
 
 
 func debug_line() -> String:

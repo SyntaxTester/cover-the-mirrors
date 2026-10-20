@@ -4,6 +4,14 @@ extends Node
 ## the photograph that turns upside down belongs to someone with a double.
 
 const GUEST := preload("res://scenes/guest.tscn")
+const RUSH_LINES := [
+	"Did you move him? Did you move your father?",
+	"Someone's been at the candles, Ronan.",
+	"I saw it. In the window. Did you see it?",
+	"Who's that sitting in my chair?",
+	"There's mud by the coffin. Wet mud. Fresh.",
+	"Your father's eyes were open. Just now. I swear it.",
+]
 
 var level: Node3D
 var visitors
@@ -17,6 +25,7 @@ var app_age := 0.0
 var flip_seen := 0.0
 var flip_age := 0.0
 var last := ""
+var scares
 
 
 func _ready() -> void:
@@ -25,6 +34,7 @@ func _ready() -> void:
 	visitors = get_node("../Visitors")
 	portraits = get_node_or_null("../Portraits")
 	omens = get_node("../Omens")
+	scares = get_node_or_null("../Scares")
 	Game.night_started.connect(func(_n): next_t = _gap() * 0.8)
 
 
@@ -34,6 +44,8 @@ func _gap() -> float:
 
 func _calm() -> bool:
 	if Game.state != Game.State.PLAY or omens.danger:
+		return false
+	if scares and scares.busy():
 		return false
 	for g in visitors.inside:
 		if is_instance_valid(g) and g.is_stalking():
@@ -54,7 +66,8 @@ func _process(dt: float) -> void:
 	if next_t > 0.0:
 		return
 	next_t = _gap()
-	var events := ["window", "steps", "mourner", "candles", "portrait", "clock", "dog", "draft", "rush", "rush", "lights", "scream", "corpse"]
+	var events := ["window", "steps", "mourner", "candles", "portrait", "clock", "dog", "draft",
+		"rush", "behind", "behind", "creep", "hatch", "lights", "scream", "corpse"]
 	events.erase(last)
 	events.shuffle()
 	for e in events:
@@ -66,15 +79,16 @@ func _process(dt: float) -> void:
 # ── events ───────────────────────────────────────────────────────────────────
 func _ev_window() -> bool:
 	var m := level.get_node_or_null("Markers/WindowFace") as Node3D
-	var face := level.get_node_or_null("Outside/Face") as Node3D
 	var p := _player()
 	if m == null or p == null or p.global_position.distance_to(m.global_position) > 9.0:
 		return false
-	Sounds.play_at(self, m.global_position, Sounds.KNOCK, -4.0, "SFX", 1.25, 0.05)
-	if face and Sight.sees(self, m.global_position, 10.0, 0.6):
-		face.visible = true
-		get_tree().create_timer(0.35).timeout.connect(func(): face.visible = false)
-	return true
+	# silent: something is simply there when you look over. Mostly the Long
+	# One; now and then the drowned woman.
+	var tall = get_tree().get_first_node_in_group("tall_one")
+	var wf = get_tree().get_first_node_in_group("window_face")
+	if tall and randf() < 0.7 and tall.arm():
+		return true
+	return wf != null and wf.arm()
 
 
 func _ev_steps() -> bool:
@@ -107,10 +121,7 @@ func _ev_mourner() -> bool:
 	level.get_node("Guests").add_child(g)
 	g.setup({"name": n, "double": true, "signs": ["dry", "no_breath", "no_shadow"]}, visitors.looks[n])
 	g.set_process(false)
-	g.global_transform = seat.global_transform
-	g.global_position.y = seat.global_position.y - (g.hip_y - 0.05)
-	g.legs.rotation.x = PI / 2
-	g.knee.rotation.x = -PI / 2
+	g.place_seated(seat)
 	apparition = g
 	app_seat = seat
 	visitors.taken[seat] = g   # nobody else gets that chair while it sits there
@@ -130,9 +141,7 @@ func _watch_apparition(dt: float) -> void:
 	if Sight.sees(self, apparition.head_pos(), 7.0):
 		app_seen += dt
 	if app_seen > 0.6 or app_age > 25.0:
-		if app_seen > 0.6:
-			Sounds.play(self, Sounds.VIOLIN_STING, -12.0)
-		apparition.queue_free()
+		apparition.queue_free()   # gone without a sound: you're not sure you saw it
 		apparition = null
 		_free_seat()
 
@@ -231,11 +240,25 @@ func _ev_rush() -> bool:
 		var to := Vector3(gp.x - p.global_position.x, 0, gp.z - p.global_position.z)
 		if to.length() < 2.5 or to.length() > 9.0:
 			continue
-		var tgt: Vector3 = p.global_position + to.normalized() * 1.1
-		if g.rush_to(tgt, randf_range(1.8, 3.0)):
-			Sounds.play(self, Sounds.VIOLIN_STING, -6.0)
+		var tgt: Vector3 = p.global_position + to.normalized() * 0.7
+		# no sting, no warning: they're just suddenly in your face, talking
+		g.set_meta("rush_line", RUSH_LINES.pick_random())
+		if g.rush_to(tgt, randf_range(1.8, 2.6)):
 			return true
+		g.remove_meta("rush_line")
 	return false
+
+
+func _ev_behind() -> bool:
+	return scares != null and scares.start_behind()
+
+
+func _ev_creep() -> bool:
+	return scares != null and scares.start_creep()
+
+
+func _ev_hatch() -> bool:
+	return scares != null and scares.arm_hatch()
 
 
 func _ev_lights() -> bool:

@@ -14,7 +14,7 @@
 		"Eileen": {"model": "ELLEN", "role": "watcher", "answers": {"who": "Patrick... and— yes. Patrick.", "how": "The long way, by the lake. I like to watch the water.", "gift": "Flowers from the ditch. They're a bit wet."}},
 		"Mary Kate": {"model": "CATHERINE", "role": "gossip", "answers": {"who": "Old Patrick! Mam says the bog took him. And she says I'm not to say the rest.", "how": "Ran the whole way, look at the state of my boots.", "gift": "Bread from Mam. And I'm to tell her everything."}},
 		"Siobhan": {"model": "MARGARET", "answers": {"who": "Your father. ...You don't know, do you?", "how": "I walked.", "gift": "A prayer. It's all I have left to give."}},
-		"Sultan": {"model": "SULTAN_ESMAGZAM", "role": "singer", "answers": {"who": "Is it a wake? I thought it was a wedding! ...Patrick, yes. Patrick.", "how": "I followed the singing. There was no singing. I got lost twice.", "gift": "Ale! Well. Half the ale."}},
+		"Esmagzam": {"model": "SULTAN_ESMAGZAM", "role": "singer", "answers": {"who": "Is it a wake? I thought it was a wedding! ...Patrick, yes. Patrick.", "how": "I followed the singing. There was no singing. I got lost twice.", "gift": "Ale! Well. Half the ale."}},
 		"James": {"model": "JAMES", "role": "singer", "answers": {"who": "Patrick, God love him. He knew every verse.", "how": "Singing up the road to keep the dark off.", "gift": "A song for him, and a bottle for us."}},
 		"William": {"model": "WILLIAM", "innocent": ["dry"], "answers": {"who": "Donnelly. The tenant on the lower field.", "how": "In the trap, of course. I'll not walk the bog like a labourer.", "gift": "My presence. And a good word with the priest."}},
 		"Daniel": {"model": "DANIEL", "role": "nervous", "answers": {"who": "Y-your father. Mister Donnelly, I mean.", "how": "I ran. There's something in the hedges tonight, I swear it.", "gift": "Mam's rosary. She said to put it in your hands. Not his. Yours."}},
@@ -30,7 +30,7 @@
 		[
 			{"name": "Seamus", "line": "Evening. I came as soon as I heard. God rest him."},
 			{"name": "Bridget", "line": "Let me in, child. The rain is in my bones."},
-			{"name": "Sultan", "line": "Is there ale? Grand. I'll sing him a song, so I will!"},
+			{"name": "Esmagzam", "line": "Is there ale? Grand. I'll sing him a song, so I will!"},
 			{"name": "Old Tom", "line": "I knew him forty years. I'll sit with him tonight."},
 			{"name": "James", "line": "God bless all here. He loved a good song, didn't he?"},
 			{"name": "Daniel", "line": "S-sorry. Am I too early? Mam said I had to come. She said not to look at you."}
@@ -38,7 +38,7 @@
 		[
 			{"name": "Nora", "line": "I've brought a candle for the window. Two, actually. Mam said two."},
 			{"name": "Michael", "line": "Open up, it's Michael from the crossroads."},
-			{"name": "Sultan", "line": "Evenin' again! I brought the ale back. Well... most of it."},
+			{"name": "Esmagzam", "line": "Evenin' again! I brought the ale back. Well... most of it."},
 			{"name": "Joseph", "line": "Are the mirrors covered? Every one of them? Good."},
 			{"name": "Paddy", "line": "Is there a chair by the fire for an old man?"},
 			{"name": "John", "line": "I made the coffin. Odd thing — they had me measure for two."},
@@ -49,7 +49,7 @@
 			{"name": "Mary Kate", "line": "It's Mary Kate. Mam sent me over with bread."},
 			{"name": "Peter", "line": "Evening. Peter, with the cart. I'm the one brought them home from the bog. Both of them."},
 			{"name": "Siobhan", "line": "Is he laid out in the room? I'll say a prayer for the both of you."},
-			{"name": "Sultan", "line": "Third night! I know all the songs now, so I do. Shall I sing one for him?"},
+			{"name": "Esmagzam", "line": "Third night! I know all the songs now, so I do. Shall I sing one for him?"},
 			{"name": "Denis", "line": "Open the door! I've a drop here for the poor man!"},
 			{"name": "Jeremiah", "line": "Did you hear it out on the road? Keening. Two voices tonight."},
 			{"name": "Timothy", "line": "Evening... I'm from the farm up the hill. God, Ronan. You look just the way they said you would."},

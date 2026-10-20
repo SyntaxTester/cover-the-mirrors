@@ -5,6 +5,7 @@ extends Node
 var level: Node3D
 var danger := false
 var lit_before := -1
+var wake_was := false
 
 
 func _ready() -> void:
@@ -29,15 +30,19 @@ func _process(_dt: float) -> void:
 	var c: int = get_node("../Candles").lit_count()
 	var was := danger
 	danger = Game.state == Game.State.PLAY and (v < 25.0 or s > 60.0 or c <= 1)
-	if danger and not was:
+	# the mirror has its own heartbeat (blind.gd) and no violin; this one is
+	# for the wake falling silent and the candles going out
+	var wake_danger := Game.state == Game.State.PLAY and (v < 25.0 or c <= 1)
+	if wake_danger and not wake_was:
 		Sounds.play(self, Sounds.VIOLIN_RISE, -6.0)   # things are slipping
+	wake_was = wake_danger
 	if Game.state == Game.State.PLAY and lit_before > 0 and c == 0:
 		Sounds.play(self, Sounds.VIOLIN_STING, -3.0)   # the last candle just died
 	lit_before = c
 	if heart.stream:
-		if danger and not heart.playing:
+		if wake_danger and not heart.playing:
 			heart.play()
-		elif not danger and heart.playing:
+		elif not wake_danger and heart.playing:
 			heart.stop()
 
 
