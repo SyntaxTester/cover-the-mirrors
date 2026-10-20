@@ -46,6 +46,7 @@ func start_night(n: int) -> void:
 	t = 0.0
 	bell_t = 0.0
 	doubles_let = 0
+	death_scare_done = false
 	state = State.PLAY
 	if run.is_empty():
 		reset_run()
@@ -77,9 +78,22 @@ func clock() -> String:
 	return "%02d:%02d" % [int(m / 60.0), m % 60]
 
 
+## These deaths come with the creature: it takes you through the window
+## (wake gone silent, candles out) or into the glass (stared too long).
+const SCARE_DEATHS := ["vigil", "candles", "soul"]
+var death_scare_done := false
+
+
 func lose(reason: String) -> void:
 	if state != State.PLAY and state != State.ATTACK:
 		return
+	if reason in SCARE_DEATHS and state == State.PLAY and not death_scare_done:
+		var a = get_tree().get_first_node_in_group("attack")
+		if a and a.has_method("death_scare"):
+			state = State.ATTACK
+			a.death_scare(reason)   # calls lose() again when it's done with you
+			return
+	death_scare_done = false
 	state = State.LOST
 	night_lost.emit(reason)
 

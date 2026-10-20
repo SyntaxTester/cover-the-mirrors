@@ -36,11 +36,8 @@ func _ready() -> void:
 	t1.horizontal_alignment = HORIZONTAL_ALIGNMENT_LEFT
 	var t2 := UiKit.label("THE MIRRORS", 18, UiKit.ACCENT)
 	t2.horizontal_alignment = HORIZONTAL_ALIGNMENT_LEFT
-	var t3 := UiKit.label("Three nights of a wake", 9, UiKit.DIM)
-	t3.horizontal_alignment = HORIZONTAL_ALIGNMENT_LEFT
 	col.add_child(t1)
 	col.add_child(t2)
-	col.add_child(t3)
 	var gap := Control.new()
 	gap.custom_minimum_size = Vector2(0, 8)
 	col.add_child(gap)
@@ -56,7 +53,7 @@ func _ready() -> void:
 	settings_box.visible = false
 	settings_box.back.connect(func(): _show_settings(false))
 	col.add_child(settings_box)
-	var hint := UiKit.label("Keep the candles lit. Cover the glass. Count your guests.", 8, UiKit.DIM)
+	var hint := UiKit.label("Esmagzam Studios", 8, UiKit.DIM)
 	hint.set_anchors_preset(Control.PRESET_BOTTOM_WIDE)
 	hint.offset_top = -14.0
 	hint.offset_bottom = -3.0

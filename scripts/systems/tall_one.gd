@@ -10,13 +10,13 @@ extends Node
 ## slowly, up past the top of the window, and is gone.
 
 const COAT := Color(0.06, 0.055, 0.06)
-const SKIN := Color(0.78, 0.74, 0.70)
+const SKIN := Color(0.42, 0.27, 0.23)
 const GLASS_X := 14.26          # just outside the pane
 const WIN := Vector3(GLASS_X, 1.45, 3.9)
 const STAND := Vector3(15.25, 0.0, 3.9)   # its feet, in the yard
 const SHOULDER_Y := 3.35
-## The head comes in through the open half of the window, lying on its side.
-const HEAD_AT := Vector3(14.12, 1.55, 4.4)
+## The head comes in through the window, lying on its side across it.
+const HEAD_AT := Vector3(14.12, 1.5, 4.42)
 
 var root: Node3D
 var head_pivot := Node3D.new()
@@ -127,29 +127,41 @@ func _hand(at: Vector3, upper: bool) -> void:
 		_cap(root, base, base + dir * (0.24 if k != 0 else 0.15), 0.011, skin)
 
 
-## Its face is someone in the house tonight.
+## Its head is the creature's: a long column of a face (the same picture as
+## Creature, assets/textures/creature_face.png), laid on its side through the
+## open half of the window.
 func _make_head() -> void:
 	if head_mesh:
-		head_mesh.queue_free()
-	var model := "SEAN"
-	if visitors:
-		var inside: Array = visitors.inside.filter(func(g): return is_instance_valid(g))
-		if not inside.is_empty():
-			var look: Dictionary = visitors.looks.get(inside.pick_random().nick, {})
-			model = str(look.get("model", model))
-	var parts := PS1Villager.build_guest_parts(PS1Villager.character_from_name(model),
-		{"expr": "grin_wide", "skin": Color(0.74, 0.72, 0.69), "dark_circles": true, "sunken_eyes": true,
-		"hat": "none", "glasses": false})
+		return
 	head_mesh = MeshInstance3D.new()
-	head_mesh.mesh = parts["head"]
-	head_mesh.material_override = parts["material"]
+	var sk := SphereMesh.new()
+	sk.radius = Creature.HEAD_R
+	sk.height = Creature.HEAD_LEN
+	sk.radial_segments = 10
+	sk.rings = 8
+	head_mesh.mesh = sk
+	var flesh := _mat(Color(1, 1, 1), 0.85)
+	flesh.albedo_texture = Creature.SKIN_TEX
+	flesh.uv1_triplanar = true
+	flesh.uv1_scale = Vector3(4, 4, 4)
+	head_mesh.material_override = flesh
+	head_mesh.position = Creature.HEAD_C
 	head_pivot.add_child(head_mesh)
-	# the head mesh hangs from its neck pivot (face toward -Z): lie it on its
-	# side, facing into the room (-X), a little too big
-	head_mesh.position = Vector3.ZERO
+	var mask := MeshInstance3D.new()
+	mask.mesh = Creature._face_patch(Creature.HEAD_R, Creature.HEAD_LEN * 0.5, Creature.HEAD_C)
+	var mm := _mat(Color(1, 1, 1), 0.85)
+	mm.albedo_texture = Creature.FACE_TEX
+	mm.transparency = BaseMaterial3D.TRANSPARENCY_ALPHA_SCISSOR
+	mm.alpha_scissor_threshold = 0.4
+	mm.cull_mode = BaseMaterial3D.CULL_DISABLED
+	mm.emission_enabled = true
+	mm.emission_texture = Creature.FACE_TEX
+	mm.emission_energy_multiplier = 0.6
+	mask.material_override = mm
+	head_pivot.add_child(mask)
+	# lying on its side, face into the room (-X), the neck end at HEAD_AT
 	head_pivot.global_transform = Transform3D(
-		Basis(Vector3.UP, PI * 0.5) * Basis(Vector3.FORWARD, PI * 0.5) * Basis.from_scale(Vector3.ONE * 1.45),
-		HEAD_AT)
+		Basis(Vector3.UP, PI * 0.5) * Basis(Vector3.FORWARD, PI * 0.5), HEAD_AT)
 
 
 ## The director's window event.

@@ -416,12 +416,6 @@ size = Vector3(0.03, 0.06, 0.07)
 [node name="Env" type="WorldEnvironment" parent="."]
 environment = SubResource("Environment_vry8j")
 
-[node name="InvWallBlock" type="CSGBox3D" parent="Env"]
-transform = Transform3D(3.853237, 0, 0, 0, 1, 0, 0, 0, 1, 14.408146, 1.0758362, 2.6015832)
-visible = false
-use_collision = true
-size = Vector3(0.16601563, 2.2289429, 1.0610352)
-
 [node name="House" type="CSGCombiner3D" parent="."]
 use_collision = true
 collision_mask = 0

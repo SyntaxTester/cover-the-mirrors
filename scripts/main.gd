@@ -22,6 +22,11 @@ const PRIEST_SEAT := Vector3(2.4, 0.46, 4.85)   # ChairA in the coffin room, fac
 
 
 func _ready() -> void:
+	# the Environment is a shared resource: the creature's blackout and the
+	# storm change it, and without a fresh copy a restarted night stayed dark
+	var we := level.get_node_or_null("Env") as WorldEnvironment
+	if we and we.environment:
+		we.environment = we.environment.duplicate()
 	var sp := level.get_node_or_null("Markers/Spawn") as Node3D
 	if sp:
 		player.global_transform = sp.global_transform

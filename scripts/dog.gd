@@ -30,5 +30,8 @@ func _process(dt: float) -> void:
 	k = move_toward(k, 1.0 if alert_on else 0.0, dt * 3.0)
 	t += dt
 	var sh := sin(t * 40.0) * 0.006 * k
-	body.position.y = body_y + k * 0.2 + sh
-	head.position = head_p + Vector3(0.05 * k, 0.3 * k + sh, 0)
+	# hackles up: it crouches and pushes its head forward, low; the body
+	# stays on its legs (it used to rise 20 cm and float off them)
+	body.position.y = body_y - 0.025 * k + sh
+	body.rotation.z = -0.06 * k
+	head.position = head_p + Vector3(0.07 * k, -0.04 * k + sh, 0)

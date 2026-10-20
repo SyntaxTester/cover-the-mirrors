@@ -5,6 +5,7 @@ const LOSE := {
 	"soul": "You looked into the mirror for too long.",
 	"vigil": "The wake fell silent.",
 	"double": "It reached the coffin. Then it came for you.",
+	"left": "Nobody leaves a wake before dawn. Not alive.",
 }
 const TYPE_SPEED := 24.0          # subtitle letters per second
 const TITLES := {
@@ -12,6 +13,7 @@ const TITLES := {
 	"candles": "The dark came in.",
 	"soul": "The glass took you.",
 	"vigil": "The dead man sat up.",
+	"left": "You left the house.",
 }
 const NIGHT_MUSIC_DB := -14.0
 const MAX_QUEUE := 3

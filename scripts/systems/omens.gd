@@ -15,8 +15,8 @@ func _ready() -> void:
 
 
 func lost(reason: String) -> void:
-	if reason == "double":
-		return
+	if reason == "double" or reason == "left" or reason in Game.SCARE_DEATHS:
+		return   # the creature already did the scaring (attack.gd)
 	Sounds.play(self, Sounds.JUMPSCARE, 0.0)
 	if reason == "candles":
 		level.get_node("Outside/Face").visible = true

@@ -7,7 +7,8 @@ const BOOT_MUD := preload("res://assets/materials/boot_mud.tres")
 const FALLBACK_MODEL := "SEAN"
 const WET_FOR := 150.0
 const HOPPER := "SULTAN_ESMAGZAM"   # Esmagzam bounces along on both feet; leave him be
-const STAND_TIME := 0.45          # real guests drip rain this long after arriving
+const STAND_TIME := 0.45
+const SEAT_FRONT := 0.42          # metres in front of a seat where they stand to sit          # real guests drip rain this long after arriving
 
 @onready var legs: Node3D = $Legs
 @onready var knee: Node3D = $Legs/Knee
@@ -48,6 +49,9 @@ var sit_from := Transform3D.IDENTITY
 var sit_to := Transform3D.IDENTITY
 var stand_left := 0.0
 var stand_from_y := 0.0
+var last_seat: Node3D
+var hold_wait := 0.0
+var stand_slide := false
 var anim_t := 0.0
 var walk_ph := 0.0
 var shiver_t := 0.0
@@ -172,6 +176,17 @@ func _animate(dt: float) -> void:
 	if stand_left > 0.0:
 		stand_left = maxf(stand_left - dt, 0.0)
 		global_position.y = lerpf(0.0, stand_from_y, smoothstep(0.0, 1.0, stand_left / STAND_TIME))
+		if stand_slide and not path.is_empty():
+			# rise and step forward off the seat together, not through it
+			var k := 1.0 - stand_left / STAND_TIME
+			var tgt: Vector3 = path[0]
+			var cur := Vector3(global_position.x, 0.0, global_position.z)
+			var nxt := cur.lerp(tgt, minf(dt / maxf(stand_left + dt, 0.01), 1.0))
+			global_position = Vector3(nxt.x, global_position.y, nxt.z)
+			if k >= 1.0:
+				stand_slide = false
+	elif stand_slide:
+		stand_slide = false
 	# a double at the door shivers now and then, like the cold got into it
 	if (state == S.DOOR or state == S.HOLD) and not double:
 		shiver_t -= dt
@@ -248,7 +263,13 @@ func _process(dt: float) -> void:
 		S.WALK, S.LEAVE, S.APPROACH, S.WANDER, S.RETURN:
 			step(dt)
 		S.HOLD:
-			hold_left -= dt
+			# a neighbour who rushed up to you waits until you've seen them
+			hold_wait += dt
+			if seen and has_meta("rush_say"):
+				speak(str(get_meta("rush_say")), true)
+				remove_meta("rush_say")
+			if seen or hold_wait > 8.0:
+				hold_left -= dt
 			if hold_left <= 0.0:
 				_go_home()
 		S.STALK:
@@ -379,13 +400,14 @@ func arrive() -> void:
 			get_tree().call_group("visitors", "on_at_spot", self)
 		S.WANDER:
 			state = S.HOLD
+			hold_wait = 0.0
 			if has_meta("rush_line"):
 				# the last step is right into your face
 				var cam := get_viewport().get_camera_3d()
 				if cam:
 					var dir := global_position - cam.global_position
 					face_camera(cam, 0.34, dir)
-				speak(str(get_meta("rush_line")), true)
+				set_meta("rush_say", get_meta("rush_line"))   # said when you see them
 				remove_meta("rush_line")
 		S.RETURN:
 			sit()
@@ -394,12 +416,23 @@ func arrive() -> void:
 			get_tree().call_group("visitors", "double_reached", self)
 
 
+## Where you stand to sit on a seat: just in front of it, never inside it.
+func _front_of(s: Node3D) -> Vector3:
+	var f := -s.global_basis.z
+	var p := s.global_position + Vector3(f.x, 0.0, f.z).normalized() * SEAT_FRONT
+	return Vector3(p.x, 0.0, p.z)
+
+
 func stand() -> void:
 	sit_blend = 1.0
 	if body and body.sit_k > 0.01:
 		stand_from_y = global_position.y
 		stand_left = STAND_TIME
 		body.set_seated(false)
+		if last_seat and is_instance_valid(last_seat):
+			# step forward off the bench first, then go wherever
+			path.push_front(_front_of(last_seat))
+			stand_slide = true
 	else:
 		global_position.y = 0.0
 
@@ -413,6 +446,7 @@ func _seat_xf(s: Node3D) -> Transform3D:
 ## On the chair at once (for things that appear already seated).
 func place_seated(s: Node3D) -> void:
 	seat = s
+	last_seat = s
 	global_transform = _seat_xf(s)
 	sit_blend = 1.0
 	stand_left = 0.0
@@ -421,6 +455,7 @@ func place_seated(s: Node3D) -> void:
 
 
 func sit() -> void:
+	last_seat = seat
 	sit_from = global_transform
 	sit_to = _seat_xf(seat)
 	sit_blend = 0.0
@@ -436,7 +471,8 @@ func sit() -> void:
 
 func walk_in(s: Node3D, pts: Array) -> void:
 	seat = s
-	path = Nav.route(global_position, pts + [Vector3(s.global_position.x, 0.0, s.global_position.z)])
+	# walk up to the front of the bench; sitting down slides them back onto it
+	path = Nav.route(global_position, pts + [_front_of(s)])
 	state = S.WALK
 	speed = Config.guest_speed
 	stand()
@@ -528,7 +564,7 @@ func _go_home() -> void:
 	if home == null:
 		state = S.SEATED
 		return
-	path = Nav.route(global_position, [Vector3(home.global_position.x, 0.0, home.global_position.z)])
+	path = Nav.route(global_position, [_front_of(home)])
 	state = S.RETURN
 	speed = Config.guest_speed
 

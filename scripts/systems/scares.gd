@@ -33,6 +33,13 @@ const LINES_STRANGER := [
 	"There's room in the box for two.",
 	"You have his eyes. I'll have them too.",
 ]
+## The copy of someone who is sitting in the house right now.
+const LINES_COPY := [
+	"I'm in there with him. And I'm out here with you.",
+	"Go and look at my chair, Ronan. Go on. Look.",
+	"Which one of me did you let in?",
+	"The one inside isn't me. Or I'm not.",
+]
 const LINES_HATCH := [
 	"Let me in, Ronan. It's only me.",
 	"It's cold out here. So cold.",
@@ -54,6 +61,8 @@ var visitors
 var level: Node3D
 var hatch
 var hatch_armed := false
+var seen_t := 0.0           # how long you've actually looked it in the face
+const MIN_SEEN := 1.8       # it doesn't leave before you've had a proper look
 
 
 func _ready() -> void:
@@ -159,14 +168,29 @@ func _pick_actor(stranger_chance: float) -> bool:
 	return true
 
 
+## Never a stranger off the street: it is someone this night is about.
+## First choice, a neighbour you left out in the rain (tonight or last night)
+## come back for you; otherwise the copy of someone sitting in the house
+## right now, so the same face is in two places at once.
 func _spawn_stranger() -> bool:
-	var tonight: Array = visitors.plan.get("portraits", [])
-	var names: Array = visitors.looks.keys().filter(func(n): return not tonight.has(n))
-	if names.is_empty():
-		names = visitors.looks.keys()
-	if names.is_empty():
-		return false
-	var n: String = names.pick_random()
+	var refused: Array = []
+	for key in ["refused_tonight", "refused_last", "lost"]:
+		for n in Game.run.get(key, []):
+			if visitors.looks.has(n) and not refused.has(n):
+				refused.append(n)
+	var inside: Array = []
+	for g in visitors.inside:
+		if is_instance_valid(g) and visitors.looks.has(g.nick) and not inside.has(g.nick):
+			inside.append(g.nick)
+	var n := ""
+	var lines: Array = LINES_STRANGER
+	if not refused.is_empty() and (inside.is_empty() or randf() < 0.6):
+		n = refused.pick_random()
+	elif not inside.is_empty():
+		n = inside.pick_random()
+		lines = LINES_COPY
+	else:
+		return false   # nobody it could be: no scare tonight
 	var g = GUEST.instantiate()
 	level.get_node("Guests").add_child(g)
 	g.setup({"name": n, "double": true, "signs": ["dry", "no_breath"],
@@ -175,7 +199,7 @@ func _spawn_stranger() -> bool:
 	g.visible = false
 	who = g
 	stranger = true
-	line = LINES_STRANGER.pick_random()
+	line = lines.pick_random()
 	return true
 
 
@@ -190,13 +214,15 @@ func _process(dt: float) -> void:
 	var cam := _cam()
 	if cam == null:
 		return
+	if phase == 1 and _facing(cam) > 0.6:
+		seen_t += dt
 	match kind:
 		K.BEHIND:
 			_run_behind(cam)
 		K.CREEP:
 			_run_creep(cam)
 		K.HATCH:
-			if t > 4.0 or (hatch and not hatch.open):
+			if t > 8.0 or (hatch and not hatch.open):
 				_finish(true)
 
 
@@ -243,8 +269,8 @@ func _run_behind(cam: Camera3D) -> void:
 				get_tree().call_group("hud", "say", who.nick, WHISPER, true)
 				phase = 3
 				t = 0.0
-		1:   # face to face
-			if t > 2.4 or (stranger and t > 0.9 and f < 0.4):
+		1:   # face to face: it stays until you've really seen it
+			if (seen_t >= MIN_SEEN and (t > 2.6 or f < 0.4)) or t > 8.0:
 				_finish(stranger)
 		3:   # the whisper: turn round now and there's nobody there
 			if f > 0.6 or t > 3.0:
@@ -256,6 +282,7 @@ func _run_behind(cam: Camera3D) -> void:
 func _reveal() -> void:
 	phase = 1
 	t = 0.0
+	seen_t = 0.0
 	who.speak(line, true)
 
 
@@ -285,13 +312,11 @@ func _run_creep(cam: Camera3D) -> void:
 			if f < -0.25:
 				_glue_behind()
 			if f > 0.75:
-				phase = 1
-				t = 0.0
-				who.speak(line, true)
+				_reveal()
 			elif t > 8.0:
 				_finish(true)
 		1:
-			if t > 2.2 or (t > 0.9 and f < 0.4):
+			if (seen_t >= MIN_SEEN and (t > 2.4 or f < 0.4)) or t > 8.0:
 				_finish(true)
 
 

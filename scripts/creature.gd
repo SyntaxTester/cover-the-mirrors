@@ -11,7 +11,7 @@ extends Node3D
 
 enum Pose { STAND, RUN, LUNGE }
 
-@export var skin := Color(0.58, 0.57, 0.55)
+@export var skin := Color(0.36, 0.22, 0.19)
 @export var height := 2.35
 
 var pose := Pose.STAND
@@ -22,6 +22,16 @@ var gum: StandardMaterial3D
 var tooth: StandardMaterial3D
 var hair_mat: StandardMaterial3D
 var pupil: StandardMaterial3D
+var mask_mat: StandardMaterial3D
+var mask: MeshInstance3D       # the painted face, wrapped over the front of the skull
+
+const FACE_TEX := preload("res://assets/textures/creature_face.png")
+const HEAD_R := 0.14
+const HEAD_LEN := 0.95
+const HEAD_C := Vector3(0, 0.42, 0)
+## Where its eyes are on the head (head space), for the camera at the catch.
+const EYES := Vector3(0, 0.5, -0.15)   # the middle of that long face
+const SKIN_TEX := preload("res://assets/textures/creature_skin.png")
 var rig := Node3D.new()
 var torso := Node3D.new()
 var head := Node3D.new()
@@ -45,10 +55,24 @@ func _ready() -> void:
 	mat.rim_enabled = true
 	mat.rim = 0.6
 	mat.rim_tint = 0.2
-	face = _mat(skin.lightened(0.08), 0.8)
-	face.albedo_texture = _corpse_skin()
-	mat.albedo_texture = face.albedo_texture
-	mat.uv1_scale = Vector3(3, 3, 3)
+	# painted textures (assets/textures): swap the PNGs to repaint it
+	face = _mat(Color(1, 1, 1), 0.8)
+	face.albedo_texture = SKIN_TEX
+	face.uv1_triplanar = true
+	face.uv1_scale = Vector3(4, 4, 4)
+	mat.albedo_color = Color(1, 1, 1)
+	mat.albedo_texture = SKIN_TEX
+	mat.uv1_triplanar = true
+	mat.uv1_scale = Vector3(2.5, 2.5, 2.5)
+	mask_mat = _mat(Color(1, 1, 1), 0.85)
+	mask_mat.albedo_texture = FACE_TEX
+	mask_mat.transparency = BaseMaterial3D.TRANSPARENCY_ALPHA_SCISSOR
+	mask_mat.alpha_scissor_threshold = 0.4
+	mask_mat.cull_mode = BaseMaterial3D.CULL_DISABLED
+	# a little light of its own, like a flash photo in the dark
+	mask_mat.emission_enabled = true
+	mask_mat.emission_texture = FACE_TEX
+	mask_mat.emission_energy_multiplier = 0.6
 	hole = _mat(Color(0, 0, 0), 1.0, true)
 	gum = _mat(Color(0.13, 0.01, 0.01), 0.6)
 	tooth = _mat(Color(0.86, 0.82, 0.68), 0.4)
@@ -87,6 +111,34 @@ func _corpse_skin() -> ImageTexture:
 			c = c.lerp(Color(0.3, 0.32, 0.38), vein * 0.6)
 			img.set_pixel(x, y, c)
 	return ImageTexture.create_from_image(img)
+
+
+## A curved patch hugging the front of an ellipsoid (rx wide, ry tall), UVs
+## spanning the whole face texture.
+static func _face_patch(rx: float, ry: float, center: Vector3) -> ArrayMesh:
+	var st := SurfaceTool.new()
+	st.begin(Mesh.PRIMITIVE_TRIANGLES)
+	const NU := 10
+	const NV := 12
+	var grid: Array = []
+	for j in NV + 1:
+		var v := float(j) / NV
+		var y := lerpf(ry * 0.95, -ry * 0.95, v)
+		var k := sqrt(maxf(1.0 - (y / ry) * (y / ry), 0.0)) * 1.04 + 0.01
+		var row: Array = []
+		for i in NU + 1:
+			var u := float(i) / NU
+			var a := lerpf(-1.35, 1.35, u)
+			row.append([center + Vector3(sin(a) * rx * k, y, -cos(a) * rx * k), Vector2(u, v)])
+		grid.append(row)
+	for j in NV:
+		for i in NU:
+			var q := [grid[j][i], grid[j][i + 1], grid[j + 1][i + 1], grid[j + 1][i]]
+			for idx in [0, 1, 2, 0, 2, 3]:
+				st.set_uv(q[idx][1])
+				st.add_vertex(q[idx][0])
+	st.generate_normals()
+	return st.commit()
 
 
 func _mat(c: Color, rough: float, unshaded := false) -> StandardMaterial3D:
@@ -152,64 +204,24 @@ func _build() -> void:
 	_mi(torso, _cap(0.03, 0.26), Vector3(0, 1.02, -0.06)).rotation.x = -0.55   # neck, pushed forward
 	head.position = Vector3(0, 1.12, -0.16)
 	torso.add_child(head)
-	# a long skull
+	# the head is the horror: a single long column of a face, nearly a metre
+	# from crown to chin, like the thing standing between the cinema seats
 	var sk := SphereMesh.new()
-	sk.radius = 0.11
-	sk.height = 0.36
-	sk.radial_segments = 8
-	sk.rings = 6
-	_mi(head, sk, Vector3(0, 0.1, 0), face)
-	# sunken sockets (a dark ring), the holes inside, a pinprick of light deep
-	# in each; one eye a little bigger and lower than the other
-	var ring := SphereMesh.new()
-	ring.radius = 0.042
-	ring.height = 0.07
-	ring.radial_segments = 6
-	ring.rings = 3
-	var shade := _mat(skin.darkened(0.6), 0.9)
-	var eye := SphereMesh.new()
-	eye.radius = 0.026
-	eye.height = 0.07
-	eye.radial_segments = 6
-	eye.rings = 3
-	var pin := SphereMesh.new()
-	pin.radius = 0.0035
-	pin.height = 0.007
-	pin.radial_segments = 4
-	pin.rings = 2
-	for k in 2:
-		var x := -0.045 if k == 0 else 0.047
-		var big := 1.0 if k == 0 else 1.18
-		var dy := 0.0 if k == 0 else -0.008
-		_mi(head, ring, Vector3(x, 0.152 + dy, -0.078), shade).scale = Vector3(big, big * 0.9, 0.6)
-		_mi(head, eye, Vector3(x, 0.15 + dy, -0.09), hole).scale = Vector3(big, big, 1.0)
-		_mi(head, pin, Vector3(x * 0.94, 0.146 + dy, -0.115), pupil)
-	# where the nose was, and the cheeks fallen in
-	var nose := PrismMesh.new()
-	nose.size = Vector3(0.03, 0.04, 0.02)
-	_mi(head, nose, Vector3(0, 0.1, -0.108), hole).rotation.x = PI
-	for x in [-0.06, 0.06]:
-		_mi(head, ring, Vector3(x, 0.075, -0.07), shade).scale = Vector3(0.7, 1.3, 0.5)
-	# upper teeth: crooked points along the top of the mouth
-	var fang := PrismMesh.new()
-	fang.size = Vector3(0.018, 0.05, 0.014)
-	for i in 9:
-		var a := (i - 4) * 0.21
-		var f := _mi(head, fang, Vector3(sin(a) * 0.05, 0.038, -0.118 + absf(sin(a)) * 0.03), tooth)
-		f.rotation = Vector3(PI, 0, randf_range(-0.25, 0.25))
-		f.scale.y = randf_range(0.8, 1.5)
+	sk.radius = HEAD_R
+	sk.height = HEAD_LEN
+	sk.radial_segments = 10
+	sk.rings = 8
+	_mi(head, sk, HEAD_C, face)
+	# the face is a picture (creature_face.png) wrapped round the front of the
+	# head; the jaw node stays for the code that animates it
+	mask = MeshInstance3D.new()
+	mask.mesh = _face_patch(HEAD_R, HEAD_LEN * 0.5, HEAD_C)
+	mask.material_override = mask_mat
+	head.add_child(mask)
 	jaw.position = Vector3(0, 0.07, -0.02)
 	head.add_child(jaw)
-	_mi(jaw, _box(Vector3(0.1, 0.03, 0.12)), Vector3(0, -0.03, -0.055), face)          # the jawbone
-	mouth = _mi(jaw, _box(Vector3(0.08, 0.075, 0.07)), Vector3(0, 0.0, -0.035), gum)   # inside the mouth
-	_mi(jaw, _box(Vector3(0.07, 0.07, 0.02)), Vector3(0, -0.005, -0.03), hole)         # the throat
-	for i in 8:   # lower teeth pointing up out of the stretched jaw
-		var a := (i - 3.5) * 0.23
-		var f := _mi(jaw, fang, Vector3(sin(a) * 0.044, -0.012, -0.122 + absf(sin(a)) * 0.03), tooth)
-		f.rotation = Vector3(0, 0, randf_range(-0.25, 0.25))
-		f.scale.y = randf_range(0.8, 1.6)
-	# wet hair: long strands from the crown, hanging over the face
-	for i in 16:
+	# no hair: just the face
+	for i in 0:
 		var a := TAU * i / 16.0
 		var root := Node3D.new()
 		root.position = Vector3(sin(a) * 0.085, 0.24, cos(a) * 0.085)
@@ -269,6 +281,10 @@ func _process(dt: float) -> void:
 		shake = 1.0
 	jaw.rotation.x = -jaw_open * 1.1 + sin(t * 47.0) * 0.08 * shake
 	jaw.scale = Vector3(1.0, 1.0 + jaw_open * 0.9, 1.0 + jaw_open * 0.4)   # the jaw stretches as it drops
+	if mask:
+		# the painted mouth drags the face longer as it opens
+		mask.scale = Vector3(1.0 - jaw_open * 0.06, 1.0 + jaw_open * 0.3, 1.0)
+		mask.position = Vector3(0, -jaw_open * 0.03, 0)
 	# the hair hangs, sways, whips when it moves
 	var whip := 0.0 if pose == Pose.STAND else (0.5 if pose == Pose.RUN else 1.0)
 	for i in hair.size():

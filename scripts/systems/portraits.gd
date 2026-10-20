@@ -8,8 +8,8 @@ const QUAD := Vector2(0.26, 0.325)    # metres
 const WALL_X := 13.975                # inside face of the east wall
 const Z0 := 4.72
 const DZ := 0.43
-const ROWS_Y := [1.86, 1.36]
-const PER_ROW := 4
+const ROWS_Y := [1.86, 1.36, 0.88]   # a third row for the busiest nights
+const PER_ROW := 5
 
 var level: Node3D
 var holder: Node3D
@@ -36,7 +36,7 @@ func _build(plan: Dictionary) -> void:
 	lamp.omni_range = 2.0
 	lamp.shadow_enabled = false
 	holder.add_child(lamp)
-	lamp.position = Vector3(WALL_X - 0.45, 2.15, Z0 + DZ * 1.5)
+	lamp.position = Vector3(WALL_X - 0.45, 2.15, Z0 + DZ * (PER_ROW - 1) * 0.5)
 	var raw: Dictionary = get_node("../Visitors").raw
 	var looks: Dictionary = raw.get("looks", {})
 	var names: Array = plan.get("portraits", [])
