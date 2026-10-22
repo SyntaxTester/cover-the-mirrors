@@ -1,12 +1,16 @@
 extends Control
 
-const BG := preload("res://assets/ui/menu_bg.jpg")
+const BG := preload("res://assets/ui/menu_frame.png")
+## The same frame with someone standing by the cross. Shown for a blink, rarely.
+const BG_ALT := preload("res://assets/ui/menu_frame_alt.png")
 
 var main_box: VBoxContainer
 var settings_box: SettingsPanel
 var music: AudioStreamPlayer
 var flick := 0.0
 var bg: TextureRect
+var scare_in := randf_range(18.0, 34.0)
+var scare_t := 0.0
 
 
 func _ready() -> void:
@@ -18,10 +22,11 @@ func _ready() -> void:
 	bg.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
 	bg.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_COVERED
 	bg.set_anchors_preset(Control.PRESET_FULL_RECT)
-	bg.modulate = Color(0.55, 0.5, 0.48)
+	bg.texture_filter = CanvasItem.TEXTURE_FILTER_NEAREST   # keep the PS1 pixels sharp
+	bg.modulate = Color(0.95, 0.9, 0.86)
 	add_child(bg)
 	var shade := ColorRect.new()
-	shade.color = Color(0.03, 0.025, 0.02, 0.55)
+	shade.color = Color(0.03, 0.025, 0.02, 0.25)
 	shade.set_anchors_preset(Control.PRESET_FULL_RECT)
 	shade.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	add_child(shade)
@@ -93,5 +98,16 @@ func _start(n: int) -> void:
 
 func _process(dt: float) -> void:
 	flick += dt
-	var f := 0.52 + 0.04 * sin(flick * 7.0) + 0.02 * sin(flick * 13.0)
+	var f := 0.92 + 0.06 * sin(flick * 7.0) + 0.03 * sin(flick * 13.0)
 	bg.modulate = Color(f + 0.03, f, f - 0.04)
+	# once in a long while, for a moment, someone is standing by the cross
+	if scare_t > 0.0:
+		scare_t -= dt
+		if scare_t <= 0.0:
+			bg.texture = BG
+	elif not settings_box.visible:
+		scare_in -= dt
+		if scare_in <= 0.0:
+			scare_in = randf_range(25.0, 50.0)
+			scare_t = randf_range(0.12, 0.25)
+			bg.texture = BG_ALT
